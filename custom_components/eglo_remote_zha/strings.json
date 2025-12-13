@@ -1,0 +1,14 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Eglo Remote ZHA",
+        "description": "This integration provides custom ZHA quirks for Eglo/AwoX ERCU_3groups_Zm remote controls.\n\nThe quirks will be automatically registered with ZHA when this integration is enabled.\n\nAfter enabling, restart Home Assistant and pair your remote via ZHA."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Only one instance of Eglo Remote ZHA is allowed."
+    }
+  },
+  "title": "Eglo Remote ZHA"
+}

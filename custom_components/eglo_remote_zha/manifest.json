@@ -1,0 +1,14 @@
+{
+  "domain": "eglo_remote_zha",
+  "name": "Eglo Remote ZHA",
+  "codeowners": ["@R00S"],
+  "config_flow": true,
+  "dependencies": ["zha"],
+  "documentation": "https://github.com/R00S/eglo-remote-zha",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/R00S/eglo-remote-zha/issues",
+  "requirements": [],
+  "version": "0.0.1",
+  "homeassistant": "2025.12.0"
+}
