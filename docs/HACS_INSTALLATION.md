@@ -32,13 +32,26 @@ This guide explains how to install the Eglo Remote ZHA integration via HACS (Hom
 
 ### 3. Restart Home Assistant
 
-After installation, you **must** restart Home Assistant for the quirks to be loaded:
+After installation, you **must** restart Home Assistant:
 
 1. Go to **Settings** → **System**
 2. Click **Restart**
 3. Wait for Home Assistant to restart (1-2 minutes)
 
-### 4. Pair Your Remote
+### 4. Add the Integration via UI
+
+After restart, add the integration:
+
+1. Go to **Settings** → **Devices & Services**
+2. Click **+ Add Integration** (bottom right)
+3. Search for "Eglo Remote ZHA"
+4. Click on it
+5. Click **Submit** to confirm
+6. The integration will be added and quirks will be registered with ZHA
+
+**That's it!** No configuration.yaml editing needed!
+
+### 5. Pair Your Remote
 
 1. Go to **Settings** → **Devices & Services** → **ZHA**
 2. Click **Add Device**
@@ -46,7 +59,7 @@ After installation, you **must** restart Home Assistant for the quirks to be loa
 4. Wait for the remote to be discovered
 5. The custom quirk will be automatically applied
 
-### 5. Verify Installation
+### 6. Verify Installation
 
 Check that the quirk is loaded:
 
@@ -58,7 +71,7 @@ Check that the quirk is loaded:
    - **Manufacturer**: AwoX
    - The device should have **66 automation triggers** (for 3-bank quirk)
 
-### 6. Install Blueprint (Optional)
+### 7. Install Blueprint (Optional)
 
 The blueprints are included in the repository:
 

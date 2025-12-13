@@ -2,6 +2,5 @@
   "name": "Eglo Remote ZHA",
   "content_in_root": false,
   "render_readme": true,
-  "homeassistant": "2025.12.0",
-  "domains": ["zha"]
+  "homeassistant": "2025.12.0"
 }

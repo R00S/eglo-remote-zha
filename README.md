@@ -24,9 +24,13 @@ This integration can be installed through HACS (Home Assistant Community Store).
 
 3. **Restart Home Assistant**
 
-4. **Pair your remote** via ZHA
+4. **Add Integration via UI**:
+   - Settings → Devices & Services → + Add Integration
+   - Search for "Eglo Remote ZHA" and add it
 
-5. **Configure blueprint** to control ANY devices (Zigbee, WiFi, Thread, BLE, RF, Z-Wave, etc.)
+5. **Pair your remote** via ZHA
+
+6. **Configure blueprint** to control ANY devices (Zigbee, WiFi, Thread, BLE, RF, Z-Wave, etc.)
 
 📖 **Full installation guide**: [docs/HACS_INSTALLATION.md](docs/HACS_INSTALLATION.md)
 
