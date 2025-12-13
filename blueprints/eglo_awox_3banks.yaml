@@ -1,0 +1,559 @@
+blueprint:
+  name: Eglo/AwoX Remote 3-Bank Control (ZHA)
+  description: |
+    Control lights with the Eglo/AwoX ERCU_3groups_Zm remote using its 3-bank functionality.
+    
+    This blueprint supports:
+    - 3 independent banks/groups (buttons 1, 2, 3 on remote)
+    - All 13 control buttons (ON/OFF, colors, brightness, temperature, scenes, refresh)
+    - Short and long press actions
+    - 66 total unique trigger combinations
+    
+    **Setup Instructions:**
+    1. Install the enhanced quirk (eglo_ercu_awox_3banks.py)
+    2. Pair the remote with ZHA
+    3. Create ZHA groups with IDs 32778, 32779, 32780
+    4. Use Touchlink to bind lights to banks (hold button 1/2/3 near lights for 10s)
+    5. Configure this blueprint for each bank
+    
+  domain: automation
+  input:
+    remote:
+      name: Eglo/AwoX Remote
+      description: The Eglo/AwoX ERCU_3groups_Zm remote to use
+      selector:
+        device:
+          integration: zha
+          manufacturer: AwoX
+          model: ERCU_3groups_Zm
+          multiple: false
+    
+    bank:
+      name: Bank Number
+      description: Which bank to control (1, 2, or 3)
+      selector:
+        select:
+          options:
+            - label: "Bank 1"
+              value: "1"
+            - label: "Bank 2"
+              value: "2"
+            - label: "Bank 3"
+              value: "3"
+      default: "1"
+    
+    target_lights:
+      name: Target Lights
+      description: The lights to control with this bank
+      selector:
+        target:
+          entity:
+            domain: light
+    
+    # Power Controls
+    use_power_buttons:
+      name: Enable Power Buttons
+      description: Use ON/OFF buttons to control lights
+      selector:
+        boolean:
+      default: true
+    
+    # Brightness Controls
+    use_brightness_buttons:
+      name: Enable Brightness Buttons
+      description: Use brightness up/down buttons (short press: step, long press: min/max)
+      selector:
+        boolean:
+      default: true
+    
+    brightness_step:
+      name: Brightness Step Percentage
+      description: How much to change brightness on short press
+      selector:
+        number:
+          min: 5
+          max: 50
+          step: 5
+          unit_of_measurement: "%"
+      default: 10
+    
+    # Color Controls
+    use_color_buttons:
+      name: Enable Color Buttons
+      description: Use color buttons (red, green, blue, cycle)
+      selector:
+        boolean:
+      default: true
+    
+    # Color Temperature Controls
+    use_temperature_buttons:
+      name: Enable Color Temperature Buttons
+      description: Use warm/cold buttons for color temperature
+      selector:
+        boolean:
+      default: true
+    
+    temperature_step:
+      name: Color Temperature Step (Mireds)
+      description: How much to change color temperature on short press
+      selector:
+        number:
+          min: 10
+          max: 100
+          step: 10
+          unit_of_measurement: "mireds"
+      default: 50
+    
+    # Scene Controls
+    use_scene_buttons:
+      name: Enable Scene Buttons
+      description: Use heart buttons for scenes
+      selector:
+        boolean:
+      default: false
+    
+    scene_1:
+      name: Scene 1 (Heart 1)
+      description: Scene to activate with Heart 1 button
+      selector:
+        entity:
+          domain: scene
+      default: []
+    
+    scene_2:
+      name: Scene 2 (Heart 2)
+      description: Scene to activate with Heart 2 button
+      selector:
+        entity:
+          domain: scene
+      default: []
+
+mode: restart
+max_exceeded: silent
+
+variables:
+  bank_var: !input bank
+  brightness_step_var: !input brightness_step
+  temperature_step_var: !input temperature_step
+
+trigger:
+  # Power Controls - ON
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "turn_on_{{ bank_var }}"
+    id: "on"
+  
+  # Power Controls - OFF
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "turn_off_{{ bank_var }}"
+    id: "off"
+  
+  # Brightness Controls - Dim UP
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "dim_up_{{ bank_var }}"
+    id: "brightness_up_short"
+  
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: "dim_up_{{ bank_var }}"
+    id: "brightness_max"
+  
+  # Brightness Controls - Dim DOWN
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "dim_down_{{ bank_var }}"
+    id: "brightness_down_short"
+  
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: "dim_down_{{ bank_var }}"
+    id: "brightness_min"
+  
+  # Color Controls - Red
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "red_{{ bank_var }}"
+    id: "color_red"
+  
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: "red_{{ bank_var }}"
+    id: "color_red_long"
+  
+  # Color Controls - Green
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "green_{{ bank_var }}"
+    id: "color_green"
+  
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: "green_{{ bank_var }}"
+    id: "color_green_long"
+  
+  # Color Controls - Blue
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "blue_{{ bank_var }}"
+    id: "color_blue"
+  
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: "blue_{{ bank_var }}"
+    id: "color_blue_long"
+  
+  # Color Controls - Cycle
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "cycle_{{ bank_var }}"
+    id: "color_cycle"
+  
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: "cycle_{{ bank_var }}"
+    id: "color_cycle_long"
+  
+  # Color Temperature - Warm
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "warm_{{ bank_var }}"
+    id: "temp_warm_short"
+  
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: "warm_{{ bank_var }}"
+    id: "temp_warm_max"
+  
+  # Color Temperature - Cold
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "cold_{{ bank_var }}"
+    id: "temp_cold_short"
+  
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: "cold_{{ bank_var }}"
+    id: "temp_cold_max"
+  
+  # Scene Controls
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "heart_1_{{ bank_var }}"
+    id: "scene_1"
+  
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "heart_2_{{ bank_var }}"
+    id: "scene_2"
+  
+  # Refresh button
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: "refresh_{{ bank_var }}"
+    id: "refresh_short"
+  
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: "refresh_{{ bank_var }}"
+    id: "refresh_long"
+
+action:
+  - choose:
+      # Power ON
+      - conditions:
+          - condition: trigger
+            id: "on"
+          - condition: template
+            value_template: "{{ use_power_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+      
+      # Power OFF
+      - conditions:
+          - condition: trigger
+            id: "off"
+          - condition: template
+            value_template: "{{ use_power_buttons }}"
+        sequence:
+          - service: light.turn_off
+            target: !input target_lights
+      
+      # Brightness UP (short press - step)
+      - conditions:
+          - condition: trigger
+            id: "brightness_up_short"
+          - condition: template
+            value_template: "{{ use_brightness_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              brightness_step_pct: "{{ brightness_step_var }}"
+      
+      # Brightness UP (long press - max)
+      - conditions:
+          - condition: trigger
+            id: "brightness_max"
+          - condition: template
+            value_template: "{{ use_brightness_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              brightness_pct: 100
+      
+      # Brightness DOWN (short press - step)
+      - conditions:
+          - condition: trigger
+            id: "brightness_down_short"
+          - condition: template
+            value_template: "{{ use_brightness_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              brightness_step_pct: "{{ -brightness_step_var }}"
+      
+      # Brightness DOWN (long press - min)
+      - conditions:
+          - condition: trigger
+            id: "brightness_min"
+          - condition: template
+            value_template: "{{ use_brightness_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              brightness_pct: 1
+      
+      # Color Red (short press - quick color)
+      - conditions:
+          - condition: trigger
+            id: "color_red"
+          - condition: template
+            value_template: "{{ use_color_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              rgb_color: [255, 0, 0]
+      
+      # Color Red (long press - full saturation)
+      - conditions:
+          - condition: trigger
+            id: "color_red_long"
+          - condition: template
+            value_template: "{{ use_color_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              hs_color: [0, 100]
+              brightness_pct: 100
+      
+      # Color Green (short press - quick color)
+      - conditions:
+          - condition: trigger
+            id: "color_green"
+          - condition: template
+            value_template: "{{ use_color_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              rgb_color: [0, 255, 0]
+      
+      # Color Green (long press - full saturation)
+      - conditions:
+          - condition: trigger
+            id: "color_green_long"
+          - condition: template
+            value_template: "{{ use_color_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              hs_color: [120, 100]
+              brightness_pct: 100
+      
+      # Color Blue (short press - quick color)
+      - conditions:
+          - condition: trigger
+            id: "color_blue"
+          - condition: template
+            value_template: "{{ use_color_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              rgb_color: [0, 0, 255]
+      
+      # Color Blue (long press - full saturation)
+      - conditions:
+          - condition: trigger
+            id: "color_blue_long"
+          - condition: template
+            value_template: "{{ use_color_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              hs_color: [240, 100]
+              brightness_pct: 100
+      
+      # Color Cycle (short press - next color)
+      - conditions:
+          - condition: trigger
+            id: "color_cycle"
+          - condition: template
+            value_template: "{{ use_color_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              effect: "colorloop"
+      
+      # Color Cycle (long press - stop effect)
+      - conditions:
+          - condition: trigger
+            id: "color_cycle_long"
+          - condition: template
+            value_template: "{{ use_color_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              effect: "none"
+      
+      # Color Temperature Warm (short press - step)
+      - conditions:
+          - condition: trigger
+            id: "temp_warm_short"
+          - condition: template
+            value_template: "{{ use_temperature_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              color_temp: "{{ state_attr(target_lights.entity_id[0], 'color_temp') | int + temperature_step_var }}"
+      
+      # Color Temperature Warm (long press - warmest)
+      - conditions:
+          - condition: trigger
+            id: "temp_warm_max"
+          - condition: template
+            value_template: "{{ use_temperature_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              color_temp: 454
+      
+      # Color Temperature Cold (short press - step)
+      - conditions:
+          - condition: trigger
+            id: "temp_cold_short"
+          - condition: template
+            value_template: "{{ use_temperature_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              color_temp: "{{ state_attr(target_lights.entity_id[0], 'color_temp') | int - temperature_step_var }}"
+      
+      # Color Temperature Cold (long press - coldest)
+      - conditions:
+          - condition: trigger
+            id: "temp_cold_max"
+          - condition: template
+            value_template: "{{ use_temperature_buttons }}"
+        sequence:
+          - service: light.turn_on
+            target: !input target_lights
+            data:
+              color_temp: 153
+      
+      # Scene 1
+      - conditions:
+          - condition: trigger
+            id: "scene_1"
+          - condition: template
+            value_template: "{{ use_scene_buttons and scene_1 != [] }}"
+        sequence:
+          - service: scene.turn_on
+            target:
+              entity_id: !input scene_1
+      
+      # Scene 2
+      - conditions:
+          - condition: trigger
+            id: "scene_2"
+          - condition: template
+            value_template: "{{ use_scene_buttons and scene_2 != [] }}"
+        sequence:
+          - service: scene.turn_on
+            target:
+              entity_id: !input scene_2
+      
+      # Refresh short (toggle)
+      - conditions:
+          - condition: trigger
+            id: "refresh_short"
+        sequence:
+          - service: light.toggle
+            target: !input target_lights
+      
+      # Refresh long (reload state)
+      - conditions:
+          - condition: trigger
+            id: "refresh_long"
+        sequence:
+          - service: homeassistant.update_entity
+            target: !input target_lights
