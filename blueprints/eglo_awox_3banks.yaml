@@ -1,20 +1,22 @@
 blueprint:
   name: Eglo/AwoX Remote 3-Bank Control (ZHA)
   description: |
-    Control lights with the Eglo/AwoX ERCU_3groups_Zm remote using its 3-bank functionality.
+    Control any Home Assistant lights or devices with the Eglo/AwoX ERCU_3groups_Zm remote using its 3-bank functionality.
     
-    This blueprint supports:
-    - 3 independent banks/groups (buttons 1, 2, 3 on remote)
+    **Simple Setup:**
+    1. Install the quirk (eglo_ercu_awox_3banks.py)
+    2. Pair the remote with ZHA
+    3. Select this blueprint and choose your devices for each bank
+    4. Done! Press buttons 1/2/3 on the remote to switch banks
+    
+    **No Touchlink or ZHA groups needed!** The blueprint handles everything in Home Assistant.
+    
+    **Features:**
+    - 3 independent banks (switch with buttons 1, 2, 3 on remote)
+    - Control ANY Home Assistant lights, switches, or devices
     - All 13 control buttons (ON/OFF, colors, brightness, temperature, scenes, refresh)
     - Short and long press actions
-    - 66 total unique trigger combinations
-    
-    **Setup Instructions:**
-    1. Install the enhanced quirk (eglo_ercu_awox_3banks.py)
-    2. Pair the remote with ZHA
-    3. Create ZHA groups with IDs 32778, 32779, 32780
-    4. Use Touchlink to bind lights to banks (hold button 1/2/3 near lights for 10s)
-    5. Configure this blueprint for each bank
+    - Fully customizable per bank
     
   domain: automation
   input:
@@ -30,7 +32,10 @@ blueprint:
     
     bank:
       name: Bank Number
-      description: Which bank to control (1, 2, or 3)
+      description: |
+        Which bank to control (1, 2, or 3).
+        Create 3 separate automations (one for each bank) to use all banks.
+        Press button 1/2/3 on the remote to switch between banks.
       selector:
         select:
           options:
@@ -43,17 +48,22 @@ blueprint:
       default: "1"
     
     target_lights:
-      name: Target Lights
-      description: The lights to control with this bank
+      name: Target Devices
+      description: |
+        Select ANY lights, switches, or devices to control with this bank.
+        You can mix different device types!
       selector:
         target:
           entity:
-            domain: light
+            - domain: light
+            - domain: switch
+            - domain: fan
+            - domain: cover
     
     # Power Controls
     use_power_buttons:
-      name: Enable Power Buttons
-      description: Use ON/OFF buttons to control lights
+      name: Enable Power Buttons (ON/OFF)
+      description: Use ON/OFF buttons to control devices
       selector:
         boolean:
       default: true
@@ -61,7 +71,10 @@ blueprint:
     # Brightness Controls
     use_brightness_buttons:
       name: Enable Brightness Buttons
-      description: Use brightness up/down buttons (short press: step, long press: min/max)
+      description: |
+        Use brightness up/down buttons.
+        Short press: Step brightness
+        Long press: Set to min/max
       selector:
         boolean:
       default: true
@@ -80,7 +93,10 @@ blueprint:
     # Color Controls
     use_color_buttons:
       name: Enable Color Buttons
-      description: Use color buttons (red, green, blue, cycle)
+      description: |
+        Use color buttons (red, green, blue, cycle).
+        Short press: Set color
+        Long press: Set color at full brightness
       selector:
         boolean:
       default: true
@@ -88,7 +104,10 @@ blueprint:
     # Color Temperature Controls
     use_temperature_buttons:
       name: Enable Color Temperature Buttons
-      description: Use warm/cold buttons for color temperature
+      description: |
+        Use warm/cold buttons for color temperature.
+        Short press: Step temperature
+        Long press: Set to warmest/coldest
       selector:
         boolean:
       default: true
@@ -106,26 +125,46 @@ blueprint:
     
     # Scene Controls
     use_scene_buttons:
-      name: Enable Scene Buttons
-      description: Use heart buttons for scenes
+      name: Enable Scene Buttons (Heart 1/2)
+      description: Use heart buttons to activate scenes
       selector:
         boolean:
       default: false
     
     scene_1:
       name: Scene 1 (Heart 1)
-      description: Scene to activate with Heart 1 button
+      description: Scene to activate with Heart 1 button (optional)
       selector:
         entity:
           domain: scene
-      default: []
+      default: ""
     
     scene_2:
       name: Scene 2 (Heart 2)
-      description: Scene to activate with Heart 2 button
+      description: Scene to activate with Heart 2 button (optional)
       selector:
         entity:
           domain: scene
+      default: ""
+    
+    # Custom Actions
+    use_custom_refresh:
+      name: Enable Custom Refresh Actions
+      description: |
+        Override default refresh button behavior.
+        Short press: Toggle devices
+        Long press: Custom action (optional)
+      selector:
+        boolean:
+      default: false
+    
+    refresh_long_action:
+      name: Refresh Long Press Action (Optional)
+      description: |
+        Custom action for long press on refresh button.
+        Leave empty to use default (toggle).
+      selector:
+        action:
       default: []
 
 mode: restart
@@ -135,6 +174,15 @@ variables:
   bank_var: !input bank
   brightness_step_var: !input brightness_step
   temperature_step_var: !input temperature_step
+  use_power_var: !input use_power_buttons
+  use_brightness_var: !input use_brightness_buttons
+  use_color_var: !input use_color_buttons
+  use_temperature_var: !input use_temperature_buttons
+  use_scene_var: !input use_scene_buttons
+  use_custom_refresh_var: !input use_custom_refresh
+  scene_1_var: !input scene_1
+  scene_2_var: !input scene_2
+  refresh_action_var: !input refresh_long_action
 
 trigger:
   # Power Controls - ON
@@ -309,28 +357,25 @@ action:
       - conditions:
           - condition: trigger
             id: "on"
-          - condition: template
-            value_template: "{{ use_power_buttons }}"
+          - "{{ use_power_var }}"
         sequence:
-          - service: light.turn_on
+          - service: homeassistant.turn_on
             target: !input target_lights
       
       # Power OFF
       - conditions:
           - condition: trigger
             id: "off"
-          - condition: template
-            value_template: "{{ use_power_buttons }}"
+          - "{{ use_power_var }}"
         sequence:
-          - service: light.turn_off
+          - service: homeassistant.turn_off
             target: !input target_lights
       
       # Brightness UP (short press - step)
       - conditions:
           - condition: trigger
             id: "brightness_up_short"
-          - condition: template
-            value_template: "{{ use_brightness_buttons }}"
+          - "{{ use_brightness_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
@@ -341,8 +386,7 @@ action:
       - conditions:
           - condition: trigger
             id: "brightness_max"
-          - condition: template
-            value_template: "{{ use_brightness_buttons }}"
+          - "{{ use_brightness_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
@@ -353,8 +397,7 @@ action:
       - conditions:
           - condition: trigger
             id: "brightness_down_short"
-          - condition: template
-            value_template: "{{ use_brightness_buttons }}"
+          - "{{ use_brightness_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
@@ -365,32 +408,29 @@ action:
       - conditions:
           - condition: trigger
             id: "brightness_min"
-          - condition: template
-            value_template: "{{ use_brightness_buttons }}"
+          - "{{ use_brightness_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
             data:
               brightness_pct: 1
       
-      # Color Red (short press - quick color)
+      # Color Red (short press)
       - conditions:
           - condition: trigger
             id: "color_red"
-          - condition: template
-            value_template: "{{ use_color_buttons }}"
+          - "{{ use_color_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
             data:
               rgb_color: [255, 0, 0]
       
-      # Color Red (long press - full saturation)
+      # Color Red (long press - full brightness)
       - conditions:
           - condition: trigger
             id: "color_red_long"
-          - condition: template
-            value_template: "{{ use_color_buttons }}"
+          - "{{ use_color_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
@@ -398,24 +438,22 @@ action:
               hs_color: [0, 100]
               brightness_pct: 100
       
-      # Color Green (short press - quick color)
+      # Color Green (short press)
       - conditions:
           - condition: trigger
             id: "color_green"
-          - condition: template
-            value_template: "{{ use_color_buttons }}"
+          - "{{ use_color_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
             data:
               rgb_color: [0, 255, 0]
       
-      # Color Green (long press - full saturation)
+      # Color Green (long press - full brightness)
       - conditions:
           - condition: trigger
             id: "color_green_long"
-          - condition: template
-            value_template: "{{ use_color_buttons }}"
+          - "{{ use_color_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
@@ -423,24 +461,22 @@ action:
               hs_color: [120, 100]
               brightness_pct: 100
       
-      # Color Blue (short press - quick color)
+      # Color Blue (short press)
       - conditions:
           - condition: trigger
             id: "color_blue"
-          - condition: template
-            value_template: "{{ use_color_buttons }}"
+          - "{{ use_color_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
             data:
               rgb_color: [0, 0, 255]
       
-      # Color Blue (long press - full saturation)
+      # Color Blue (long press - full brightness)
       - conditions:
           - condition: trigger
             id: "color_blue_long"
-          - condition: template
-            value_template: "{{ use_color_buttons }}"
+          - "{{ use_color_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
@@ -448,12 +484,11 @@ action:
               hs_color: [240, 100]
               brightness_pct: 100
       
-      # Color Cycle (short press - next color)
+      # Color Cycle (short press - enable colorloop)
       - conditions:
           - condition: trigger
             id: "color_cycle"
-          - condition: template
-            value_template: "{{ use_color_buttons }}"
+          - "{{ use_color_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
@@ -464,96 +499,107 @@ action:
       - conditions:
           - condition: trigger
             id: "color_cycle_long"
-          - condition: template
-            value_template: "{{ use_color_buttons }}"
+          - "{{ use_color_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
             data:
               effect: "none"
       
-      # Color Temperature Warm (short press - step)
+      # Color Temperature Warm (short press - step warmer)
       - conditions:
           - condition: trigger
             id: "temp_warm_short"
-          - condition: template
-            value_template: "{{ use_temperature_buttons }}"
+          - "{{ use_temperature_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
             data:
-              color_temp: "{{ state_attr(target_lights.entity_id[0], 'color_temp') | int + temperature_step_var }}"
+              color_temp: >
+                {% set lights = expand(target_lights.entity_id) | selectattr('domain', 'eq', 'light') | list %}
+                {% if lights | length > 0 %}
+                  {{ (state_attr(lights[0].entity_id, 'color_temp') | int(250)) + temperature_step_var }}
+                {% else %}
+                  {{ 250 + temperature_step_var }}
+                {% endif %}
       
       # Color Temperature Warm (long press - warmest)
       - conditions:
           - condition: trigger
             id: "temp_warm_max"
-          - condition: template
-            value_template: "{{ use_temperature_buttons }}"
+          - "{{ use_temperature_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
             data:
               color_temp: 454
       
-      # Color Temperature Cold (short press - step)
+      # Color Temperature Cold (short press - step colder)
       - conditions:
           - condition: trigger
             id: "temp_cold_short"
-          - condition: template
-            value_template: "{{ use_temperature_buttons }}"
+          - "{{ use_temperature_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
             data:
-              color_temp: "{{ state_attr(target_lights.entity_id[0], 'color_temp') | int - temperature_step_var }}"
+              color_temp: >
+                {% set lights = expand(target_lights.entity_id) | selectattr('domain', 'eq', 'light') | list %}
+                {% if lights | length > 0 %}
+                  {{ (state_attr(lights[0].entity_id, 'color_temp') | int(250)) - temperature_step_var }}
+                {% else %}
+                  {{ 250 - temperature_step_var }}
+                {% endif %}
       
       # Color Temperature Cold (long press - coldest)
       - conditions:
           - condition: trigger
             id: "temp_cold_max"
-          - condition: template
-            value_template: "{{ use_temperature_buttons }}"
+          - "{{ use_temperature_var }}"
         sequence:
           - service: light.turn_on
             target: !input target_lights
             data:
               color_temp: 153
       
-      # Scene 1
+      # Scene 1 (Heart 1)
       - conditions:
           - condition: trigger
             id: "scene_1"
-          - condition: template
-            value_template: "{{ use_scene_buttons and scene_1 != [] }}"
+          - "{{ use_scene_var and scene_1_var != '' }}"
         sequence:
           - service: scene.turn_on
             target:
-              entity_id: !input scene_1
+              entity_id: "{{ scene_1_var }}"
       
-      # Scene 2
+      # Scene 2 (Heart 2)
       - conditions:
           - condition: trigger
             id: "scene_2"
-          - condition: template
-            value_template: "{{ use_scene_buttons and scene_2 != [] }}"
+          - "{{ use_scene_var and scene_2_var != '' }}"
         sequence:
           - service: scene.turn_on
             target:
-              entity_id: !input scene_2
+              entity_id: "{{ scene_2_var }}"
       
-      # Refresh short (toggle)
+      # Refresh short (toggle all devices)
       - conditions:
           - condition: trigger
             id: "refresh_short"
         sequence:
-          - service: light.toggle
+          - service: homeassistant.toggle
             target: !input target_lights
       
-      # Refresh long (reload state)
+      # Refresh long (custom action or update entities)
       - conditions:
           - condition: trigger
             id: "refresh_long"
         sequence:
-          - service: homeassistant.update_entity
-            target: !input target_lights
+          - choose:
+              # If custom action provided, use it
+              - conditions: "{{ use_custom_refresh_var and refresh_action_var | length > 0 }}"
+                sequence: !input refresh_long_action
+            # Otherwise, update entity states
+            default:
+              - service: homeassistant.update_entity
+                target: !input target_lights

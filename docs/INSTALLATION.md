@@ -8,7 +8,7 @@ This guide explains how to install and configure the AwoX ERCU_3groups_Zm remote
 - HACS (Home Assistant Community Store) installed
 - AwoX ERCU_3groups_Zm remote (Eglo Remote 2.0, Model 99099)
 
-## Installation Steps
+## Quick Start (3 Simple Steps!)
 
 ### Step 1: Install the Custom Quirk via HACS
 
@@ -49,50 +49,9 @@ This guide explains how to install and configure the AwoX ERCU_3groups_Zm remote
 4. Wait for Home Assistant to discover the remote
 5. The remote should appear as "AwoX ERCU_3groups_Zm"
 
-### Step 3: Create ZHA Groups for 3-Bank Support
+### Step 3: Configure the Blueprint
 
-The remote uses specific Zigbee group IDs for its 3 banks:
-- Bank 1: Group ID **32778** (0x800A)
-- Bank 2: Group ID **32779** (0x800B)
-- Bank 3: Group ID **32780** (0x800C)
-
-**Create the groups:**
-
-1. Go to Settings → Devices & Services → ZHA
-2. Click on the "Groups" tab
-3. Click "Add Group"
-4. For each bank:
-   - Name: "Bank 1" (or "Bank 2", "Bank 3")
-   - Group ID: Enter **32778** (or 32779, 32780)
-   - Click "Add"
-
-### Step 4: Assign Lights to Banks using Touchlink
-
-The remote uses Touchlink to bind lights directly to each bank. This creates a direct Zigbee connection between the remote and the lights.
-
-**For each bank:**
-
-1. **Factory reset the lights** you want to assign to this bank:
-   - Power cycle 5-6 times (on for 2 seconds, off for 2 seconds)
-   - Or use the AwoX app to remove them
-   - Lights should flash to confirm reset
-
-2. **Power on ONLY the lights** for the target bank
-
-3. **Bring the remote within 30cm** (~1 foot) of the lights
-
-4. **Press and hold the bank button** (1, 2, or 3) for ~10 seconds:
-   - Remote LED will flash
-   - Lights will blink 3 times to confirm pairing
-
-5. **Test the pairing:**
-   - Press button 1 (or 2, or 3) on the remote
-   - Press the ON button
-   - The lights should turn on
-
-6. **Repeat for other banks** with different lights
-
-### Step 5: Install the Blueprint
+**No Touchlink or ZHA groups needed!** Just select your devices.
 
 1. Go to Settings → Automations & Scenes → Blueprints
 2. Click "Import Blueprint"
@@ -102,11 +61,7 @@ The remote uses Touchlink to bind lights directly to each bank. This creates a d
    ```
 4. Click "Preview" then "Import"
 
-### Step 6: Create Automations from Blueprint
-
-Create one automation per bank:
-
-#### Bank 1 Automation
+#### Create Automation for Bank 1
 
 1. Go to Settings → Automations & Scenes
 2. Click "Create Automation" → "Use Blueprint"
@@ -114,41 +69,121 @@ Create one automation per bank:
 4. Configure:
    - **Remote**: Select your AwoX remote
    - **Bank Number**: Select "Bank 1"
-   - **Target Lights**: Select the lights you paired to bank 1
+   - **Target Devices**: Select ANY lights, switches, or devices you want to control
    - **Enable features**: Check the controls you want to use
    - **Adjust settings**: Brightness step, color temp step, etc.
 5. Give it a name: "Eglo Remote - Bank 1"
 6. Save
 
-#### Bank 2 and 3 Automations
+#### Create Automations for Banks 2 and 3
 
-Repeat the above steps for Banks 2 and 3 with their respective lights.
+Repeat the above steps for Banks 2 and 3, selecting different devices for each bank.
 
-## Verification
+## That's It!
 
-### Test Bank Selection
+You're done! Press buttons **1**, **2**, or **3** on the remote to switch between banks, then use the control buttons (ON/OFF, colors, brightness, etc.) to control the selected devices.
 
-1. Press button **1** on the remote
-2. Press **ON** → Bank 1 lights should turn on
-3. Press **OFF** → Bank 1 lights should turn off
+**No complex setup needed!** Home Assistant handles everything.
 
-4. Press button **2** on the remote
-5. Press **ON** → Bank 2 lights should turn on (Bank 1 stays off)
-6. Press **OFF** → Bank 2 lights should turn off
+## Usage
 
-5. Press button **3** on the remote
-6. Press **ON** → Bank 3 lights should turn on
-7. Press **OFF** → Bank 3 lights should turn off
+### Switching Between Banks
 
-### Test All Control Buttons
+Press button **1**, **2**, or **3** on the remote to select which bank is active. The remote remembers your selection.
 
-For each bank, test:
-- ✓ ON/OFF buttons
-- ✓ Brightness up/down (short + long press)
-- ✓ Color buttons (red, green, blue, cycle)
-- ✓ Color temperature (warm, cold)
-- ✓ Scene buttons (heart 1, heart 2)
-- ✓ Refresh button
+### Control Buttons
+
+Once a bank is selected, use any control button:
+
+**Power**:
+- ON - Turn on devices
+- OFF - Turn off devices
+
+**Colors** (for lights):
+- Red (short) - Set red color
+- Red (long) - Set red at full brightness
+- Green (short) - Set green color
+- Green (long) - Set green at full brightness
+- Blue (short) - Set blue color
+- Blue (long) - Set blue at full brightness
+- Cycle (short) - Enable colorloop effect
+- Cycle (long) - Disable effects
+
+**Brightness** (for lights):
+- Dim UP (short) - Increase brightness by step
+- Dim UP (long) - Set to 100%
+- Dim DOWN (short) - Decrease brightness by step
+- Dim DOWN (long) - Set to 1%
+
+**Color Temperature** (for lights):
+- Warm (short) - Step warmer
+- Warm (long) - Set to warmest (454 mireds)
+- Cold (short) - Step colder
+- Cold (long) - Set to coldest (153 mireds)
+
+**Scenes** (if configured):
+- Heart 1 - Activate scene 1
+- Heart 2 - Activate scene 2
+
+**Special**:
+- Refresh (short) - Toggle devices
+- Refresh (long) - Custom action or update entity states
+
+## Examples
+
+### Example 1: 3 Rooms with Lights
+
+**Bank 1** - Living Room:
+- Target: `light.living_room_ceiling`, `light.living_room_lamp`
+- Features: All enabled
+
+**Bank 2** - Bedroom:
+- Target: `light.bedroom_ceiling`, `light.bedside_lamp`
+- Features: Power, brightness, temperature only
+
+**Bank 3** - Kitchen:
+- Target: `light.kitchen_ceiling`, `light.kitchen_under_cabinet`
+- Features: Power and brightness only
+
+### Example 2: Mixed Device Types
+
+**Bank 1** - Entertainment:
+- Target: `light.tv_backlight`, `switch.tv`, `media_player.living_room_tv`
+- Features: Power only (ON/OFF for all)
+
+**Bank 2** - Office:
+- Target: `light.desk_lamp`, `switch.monitor`, `fan.desk_fan`
+- Features: Power and brightness (lights get brightness, switches get on/off)
+
+**Bank 3** - Garden:
+- Target: `light.garden_path`, `light.garden_spotlights`, `switch.garden_fountain`
+- Features: Power, scenes (different garden moods)
+
+## Advanced Configuration
+
+### Custom Refresh Actions
+
+You can define custom actions for the long press on the refresh button:
+
+```yaml
+# In blueprint configuration
+refresh_long_action:
+  - service: script.turn_on
+    target:
+      entity_id: script.goodnight_routine
+  - service: notify.mobile_app
+    data:
+      message: "Goodnight routine activated"
+```
+
+### Conditional Controls
+
+Use Home Assistant conditions to control when features are available:
+
+```yaml
+# Only allow color changes during day
+use_color_buttons: "{{ now().hour >= 6 and now().hour < 22 }}"
+```
 
 ## Troubleshooting
 
@@ -158,24 +193,21 @@ For each bank, test:
 - Ensure you're using the enhanced quirk
 - Check ZHA logs for errors
 
-### Lights don't respond to bank buttons
+### Buttons don't respond
 
-- Verify ZHA groups are created with correct IDs (32778, 32779, 32780)
-- Re-do the Touchlink pairing procedure
-- Ensure only target lights are powered on during pairing
-- Hold bank button close to lights (< 30cm) for full 10 seconds
+- Verify the automation is enabled
+- Check automation traces to see if triggers are firing
+- Enable debug logging to see Zigbee messages
 
 ### Only some buttons work
 
 - Check that you've enabled the features in the blueprint configuration
-- Verify the automation is running (check automation traces)
-- Enable ZHA debug logging to see if commands are received
+- Verify device types support the commands (e.g., switches don't have brightness)
 
-### Commands affect wrong lights
+### Wrong bank activates
 
-- Verify you pressed the correct bank button (1, 2, or 3) before control buttons
-- Check that lights are properly assigned to ZHA groups
-- Re-do Touchlink pairing if needed
+- Ensure you pressed the correct bank button (1, 2, or 3) before control buttons
+- The remote remembers the last bank pressed
 
 ## Debug Logging
 
@@ -189,38 +221,20 @@ logger:
     homeassistant.components.zha: debug
 ```
 
-After enabling, check the logs when pressing buttons to see:
-- Group ID in messages (should be 32778, 32779, or 32780)
+Check logs when pressing buttons to see:
 - Command types
+- Group IDs (should be 32778, 32779, or 32780)
 - Any errors
 
-## Advanced Configuration
+## Benefits of This Approach
 
-### Custom Actions per Bank
-
-You can create custom automations that react to specific button+bank combinations:
-
-```yaml
-trigger:
-  - platform: device
-    domain: zha
-    device_id: <your_remote_id>
-    type: remote_button_short_press
-    subtype: "red_1"  # Red button on bank 1
-
-action:
-  - service: scene.turn_on
-    target:
-      entity_id: scene.movie_mode
-```
-
-### Using with Node-RED
-
-The 66 separate triggers are also available in Node-RED:
-- Use the "Events: state" node
-- Filter by device
-- Look for `zha_event` events
-- Check the `command` and `bank` fields
+✅ **No complex Zigbee setup** - No Touchlink or ZHA groups needed
+✅ **Control ANY device** - Not just Zigbee lights
+✅ **Mix device types** - Lights, switches, fans, covers in same bank
+✅ **Easy reconfiguration** - Change devices anytime in the blueprint
+✅ **Full Home Assistant integration** - Use scenes, scripts, conditions
+✅ **No proximity requirements** - Configure from anywhere
+✅ **Works with cloud devices** - Even WiFi/cloud lights work!
 
 ## Support
 
@@ -231,11 +245,12 @@ For issues, questions, or contributions:
 ## Summary
 
 You now have:
-- ✅ 3 independent banks/groups
+- ✅ 3 independent banks
+- ✅ Control ANY Home Assistant device
 - ✅ 13 control buttons per bank
 - ✅ Short + long press support (22 actions per bank)
 - ✅ 66 total unique trigger combinations
-- ✅ Direct Zigbee control via Touchlink
-- ✅ Flexible automation via blueprints
+- ✅ Simple 3-step setup
+- ✅ No Touchlink or ZHA groups needed!
 
-Enjoy your fully functional 3-bank Eglo remote!
+Enjoy your fully functional 3-bank Eglo remote controlling any devices in your home!
