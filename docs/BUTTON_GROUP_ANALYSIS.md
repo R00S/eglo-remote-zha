@@ -2,9 +2,9 @@
 
 ## Question 1: Which buttons send groupID and which don't?
 
-### Buttons That INCLUDE GroupID (ALL control buttons)
+### Buttons That INCLUDE GroupID (ALL 13 control buttons)
 
-Based on Zigbee2MQTT source code analysis, **ALL control buttons** send the groupID with their commands:
+Based on Zigbee2MQTT source code analysis, **ALL 13 control buttons** send the groupID with their commands:
 
 #### Power Controls
 - ✅ **ON button** - sends `command_on` with groupID
@@ -82,7 +82,7 @@ This would result in triggers like:
 - `remote_button_short_press` with subtype `turn_on_3`
 - etc.
 
-**Total triggers**: ~16 control buttons × 3 groups = **~48 separate triggers**
+**Total triggers**: 13 control buttons × 3 groups = **39 separate triggers**
 
 #### Benefits of This Approach
 
@@ -181,24 +181,26 @@ action:
 
 ### Answer 1: Button-GroupID Matrix
 
-| Button Category | Buttons | Include GroupID? |
-|----------------|---------|------------------|
-| Power | ON, OFF | ✅ YES |
-| Brightness | Dim Up, Dim Down (short & long) | ✅ YES |
-| Colors | Red, Green, Blue, Cycle | ✅ YES |
-| Scenes | Heart 1, Heart 2 | ✅ YES |
-| Temperature | Warm, Cold (short & long) | ✅ YES |
-| Special | Refresh | ✅ YES |
-| **Group Selectors** | **1, 2, 3** | ❌ **NO** (stateful only) |
+| Button Category | Buttons | Include GroupID? | Count |
+|----------------|---------|------------------|-------|
+| Power | ON, OFF | ✅ YES | 2 |
+| Brightness | Dim Up, Dim Down | ✅ YES | 2 |
+| Colors | Red, Green, Blue, Cycle | ✅ YES | 4 |
+| Scenes | Heart 1, Heart 2 | ✅ YES | 2 |
+| Temperature | Warm, Cold | ✅ YES | 2 |
+| Special | Refresh | ✅ YES | 1 |
+| **Subtotal Control** | | | **13** |
+| **Group Selectors** | **1, 2, 3** | ❌ **NO** (stateful only) | **3** |
+| **TOTAL** | | | **16 buttons** |
 
-**Result**: 16 control buttons × 3 groups = **48 possible button+group combinations**
+**Result**: 13 control buttons × 3 groups = **39 possible button+group combinations**
 
 ### Answer 2: Emulation Strategy
 
 **YES**, the quirk can emulate these as different buttons by:
 1. Extracting groupID from `dst_addressing.group` 
 2. Creating separate triggers with group suffix (e.g., `turn_on_1`, `turn_on_2`, `turn_on_3`)
-3. Registering ~48 device automation triggers total
+3. Registering 39 device automation triggers total (13 control buttons × 3 groups)
 4. Users get button+group combos as distinct automation triggers
 
 This provides the best user experience - each physical button press with a group context appears as a unique trigger in Home Assistant.
