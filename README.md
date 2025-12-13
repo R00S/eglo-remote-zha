@@ -1,103 +1,63 @@
-# Eglo Remote ZHA Hacks Repository
+# Eglo Remote ZHA
 
-> 🔧 **Community-driven development and testing for Eglo remote controls in Home Assistant ZHA**
+> 🔧 **Custom ZHA integration for Eglo remote controls with universal device control**
 
 [![GitHub](https://img.shields.io/github/license/R00S/eglo-remote-zha)](LICENSE)
 [![GitHub issues](https://img.shields.io/github/issues/R00S/eglo-remote-zha)](https://github.com/R00S/eglo-remote-zha/issues)
 [![GitHub stars](https://img.shields.io/github/stars/R00S/eglo-remote-zha)](https://github.com/R00S/eglo-remote-zha/stargazers)
+[![HACS](https://img.shields.io/badge/HACS-Integration-41BDF5.svg)](https://github.com/hacs/integration)
 
 ---
 
-## ⚠️ UNDER ACTIVE DEVELOPMENT
+## 📦 Installation via HACS
 
-**🚧 This repository is currently being reorganized and is under active development. 🚧**
+This integration can be installed through HACS (Home Assistant Community Store).
 
-**Status**: The quirks and blueprints are being restructured, tested, and documented. While the code may work, documentation and installation instructions are still being finalized.
+### Quick Start
 
-**Please check back soon or watch this repository for updates!**
+1. **Add repository to HACS**:
+   - HACS → Integrations → ⋮ → Custom repositories
+   - Repository: `https://github.com/R00S/eglo-remote-zha`
+   - Category: **Integration**
 
-- ✅ Repository structure: In progress
-- ✅ Documentation: Being updated
-- 🔄 Testing: Ongoing
-- 🔄 Final validation: Pending
+2. **Install**: Search for "Eglo Remote ZHA" in HACS and click Download
 
-**For now, consider this a "hacks repo" for experimental use and testing. Stable releases will be tagged when ready.**
+3. **Restart Home Assistant**
 
----
+4. **Pair your remote** via ZHA
 
-This repository serves as a development and testing environment ("hacks repo") for making Eglo remote controls work seamlessly with Home Assistant's ZHA (Zigbee Home Automation) integration. Our goal is to achieve feature parity with Zigbee2MQTT implementations while providing enhanced functionality through custom quirks and blueprints.
+5. **Configure blueprint** to control ANY devices (Zigbee, WiFi, Thread, BLE, RF, Z-Wave, etc.)
 
-## 🎯 Project Status
-
-**Current State**: Active development - Focus on **AwoX ERCU_3groups_Zm** (testable device)
-
-**Primary Device**: AwoX ERCU_3groups_Zm (Eglo Remote 2.0)  
-**Status**: 🔄 Testing and validation in progress
-
-**What Works**:
-- ✅ On/Off buttons working
-- ✅ Brightness control (dim up/down)
-- ✅ Color control buttons (red, green, blue)
-- ✅ Scene recall buttons (heart 1, heart 2)
-- ✅ Color temperature control (warm/cold)
-- ✅ Refresh button functionality
-- ✅ Short press and long press events
-
-**Known Issues**:
-- ⚠️ **Group selector buttons (1, 2, 3) are NOT YET MAPPED** - These buttons allow switching between 3 light groups
-- ⚠️ Currently all commands operate on a single context, cannot select different groups
-
-**In Progress**:
-- 🔄 Investigating group selector button implementation
-- 🔄 Understanding Zigbee Groups cluster (0x0004) usage
-- 🔄 Testing with physical device to capture group button events
-- 🔄 Documentation for complete button mappings including group selectors
-
-## 📱 Supported Devices
-
-### Primary Focus (Your Testable Device)
-
-#### AwoX ERCU_3groups_Zm (Eglo Remote 2.0) - **Active Development** 🔄
-- **Model**: ERCU_3groups_Zm / 99099
-- **Manufacturer**: AwoX
-- **Type**: Advanced color remote with 3-bank selection
-- **Features**: 
-  - **Bank selector buttons (1, 2, 3)** - NOT YET MAPPED ⚠️
-  - On/Off control
-  - Brightness dimming (up/down)
-  - RGB color control (red, green, blue)
-  - Color temperature (warm/cold)
-  - Scene recall (2 scenes)
-  - Refresh/cycle function
-- **Quirk**: [`quirks/eglo_ercu_awox.py`](quirks/eglo_ercu_awox.py)
-- **Status**: Currently being tested with physical device
-
-**This is YOUR device - the only one we should focus on for this issue.**
+📖 **Full installation guide**: [docs/HACS_INSTALLATION.md](docs/HACS_INSTALLATION.md)
 
 ---
 
-### Other Devices (Different Hardware - Not Relevant)
+## 🌟 Key Features
 
-#### TS004F (Tuya Variant) - **Different Device** ℹ️
-- **Model**: TS004F
-- **Manufacturer Code**: _TZ3000_4fjiwweb (Tuya)
-- **Type**: Simple 6-button remote (3 groups × 2 buttons)
-- **Features**: On/Off, Brightness control
-- **Quirk**: [`quirks/eglo_ercu_3groups.py`](quirks/eglo_ercu_3groups.py)
-- **Status**: Community-supported, but NOT the AwoX remote
+### Universal Device Control
+Control **ANY Home Assistant device** with your Eglo remote:
+- ✅ **Zigbee** (lights, switches, plugs)
+- ✅ **WiFi** (TP-Link, Shelly, Tuya, LIFX, etc.)
+- ✅ **Thread** (Matter-over-Thread, Nanoleaf, Eve)
+- ✅ **Bluetooth** (BLE devices)
+- ✅ **433MHz RF** (via bridges)
+- ✅ **Z-Wave** devices
+- ✅ **Cloud** devices
+- ✅ **Virtual** entities (scripts, helpers, groups)
 
-**Note**: Despite similar naming, TS004F and AwoX ERCU_3groups_Zm are **completely different devices** with different manufacturers, different button layouts, and different functionality. Do not confuse them.
+**Mix different protocols in the same bank!**
 
-### Button Layout
+### 3-Bank Control
+- **66 automation triggers** (22 actions × 3 banks)
+- Switch between 3 independent device groups with buttons 1/2/3
+- Configure each bank separately via blueprint
 
-The AwoX ERCU_3groups_Zm has a more complex layout than a simple 3-group remote:
-### Button Layout
+### No Complex Setup Required
+- ❌ No Touchlink binding needed
+- ❌ No ZHA groups to create
+- ✅ Just select your devices in the blueprint
 
-The AwoX ERCU_3groups_Zm is indeed a **3-group remote control**:
-
-```
-┌─────────────────────────────────┐
-│      Eglo Remote 2.0 (AwoX)     │
+---
 ├─────────────────────────────────┤
 │  [1]    [2]    [3]              │  ← **Group Selectors** (NOT YET MAPPED)
 ├─────────────────────────────────┤
