@@ -1,6 +1,30 @@
 # Contributing to Eglo Remote ZHA
 
-Thank you for your interest in contributing to this project! This document provides guidelines for contributing.
+> ⚠️ **Note**: This is a development/"hacks" repository. Code is under active reorganization.
+
+Thank you for your interest in contributing to this project! This document provides guidelines for contributing to the Eglo Remote ZHA hacks repository.
+
+## Project Purpose
+
+This is a **community-driven development and testing repository** ("hacks repo") for:
+- Custom ZHA quirks for Eglo remote controls
+- Home Assistant blueprints for common automation scenarios
+- Documentation and guides
+- Testing new features before official submission
+
+Our goal is to achieve feature parity with Zigbee2MQTT while leveraging ZHA's native Home Assistant integration.
+
+## Repository Structure
+
+```
+eglo-remote-zha/
+├── quirks/           # Custom ZHA quirks (Python)
+├── blueprints/       # Home Assistant blueprints (YAML)
+├── docs/             # Documentation (Markdown)
+├── README.md         # Main project documentation
+├── CONTRIBUTING.md   # This file
+└── LICENSE
+```
 
 ## How to Contribute
 
@@ -25,20 +49,38 @@ If you want to test the quirk:
 3. Test all buttons (short press, long press, long release)
 4. Report your findings
 
+
 ### Code Contributions
 
-#### Improving the Quirk
+#### Improving Quirks
 
-If you want to improve the Python quirk:
+If you want to improve the Python quirks in the `quirks/` directory:
 
 1. Fork the repository
 2. Create a branch for your changes
-3. Make your modifications to `eglo_ercu_3groups.py`
+3. Make your modifications to the appropriate quirk file:
+   - `quirks/eglo_ercu_3groups.py` for TS004F (Tuya variant)
+   - `quirks/eglo_ercu_awox.py` for AwoX variant
 4. Test thoroughly with a real device
 5. Submit a pull request with:
    - Description of changes
    - Why the changes are needed
+   - Test results with your device
+   - Device signature if different from documented
+
+#### Blueprint Contributions
+
+If you create useful blueprints in the `blueprints/` directory:
+
+1. Test the blueprint thoroughly with real devices
+2. Document all inputs and expected behavior
+3. Add comments explaining complex logic
+4. Include usage examples in a comment header
+5. Submit a pull request with:
+   - The blueprint YAML file
+   - Description of what it does
    - Test results
+   - Any special requirements or limitations
 
 #### Code Style
 
@@ -52,10 +94,11 @@ Follow the existing code style:
 
 Documentation contributions are welcome! This includes:
 
-- Fixing typos or unclear instructions
-- Adding examples
+- Fixing typos or unclear instructions in any `.md` file
+- Adding examples to `README.md` or documentation in `docs/`
 - Improving installation instructions
-- Adding troubleshooting tips
+- Adding troubleshooting tips to `quirks/README.md` or `blueprints/README.md`
+- Creating guides or tutorials
 
 ### Blueprint Contributions
 
@@ -64,6 +107,7 @@ If you create useful blueprints using this quirk:
 1. Test the blueprint thoroughly
 2. Document all inputs and expected behavior
 3. Submit a pull request with the blueprint and description
+4. Update `blueprints/README.md` with your blueprint information
 
 ## Submitting to Official ZHA Device Handlers
 

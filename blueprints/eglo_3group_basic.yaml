@@ -209,8 +209,7 @@ action:
                 - service: light.turn_on
                   target: !input light_group_1
                   data:
-                    brightness_step_pct: !input brightness_step
-                    brightness_step: -{{ brightness_step }}
+                    brightness_step_pct: "{{ -(brightness_step | int) }}"
                 - delay:
                     milliseconds: 250
       
@@ -259,7 +258,7 @@ action:
                 - service: light.turn_on
                   target: !input light_group_2
                   data:
-                    brightness_step_pct: -{{ brightness_step }}
+                    brightness_step_pct: "{{ -(brightness_step | int) }}"
                 - delay:
                     milliseconds: 250
       
@@ -308,6 +307,6 @@ action:
                 - service: light.turn_on
                   target: !input light_group_3
                   data:
-                    brightness_step_pct: -{{ brightness_step }}
+                    brightness_step_pct: "{{ -(brightness_step | int) }}"
                 - delay:
                     milliseconds: 250
