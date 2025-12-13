@@ -1,0 +1,313 @@
+blueprint:
+  name: Eglo ERCU 3-Group Remote Control
+  description: >
+    Control three groups of lights with the Eglo ERCU_3groups_Zm remote.
+    Each group has two buttons: top button for on/dimming up, bottom button for off/dimming down.
+  domain: automation
+  input:
+    remote:
+      name: Eglo Remote
+      description: The Eglo ERCU_3groups_Zm remote to use
+      selector:
+        device:
+          integration: zha
+          manufacturer: _TZ3000_4fjiwweb
+          model: TS004F
+    light_group_1:
+      name: Light Group 1
+      description: The light(s) to control with buttons 1 and 2 (left side)
+      selector:
+        target:
+          entity:
+            domain: light
+    light_group_2:
+      name: Light Group 2
+      description: The light(s) to control with buttons 3 and 4 (middle)
+      selector:
+        target:
+          entity:
+            domain: light
+    light_group_3:
+      name: Light Group 3
+      description: The light(s) to control with buttons 5 and 6 (right side)
+      selector:
+        target:
+          entity:
+            domain: light
+    brightness_step:
+      name: Brightness Step
+      description: The percentage to increase/decrease brightness with each long press
+      default: 10
+      selector:
+        number:
+          min: 5
+          max: 25
+          unit_of_measurement: "%"
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  # Group 1 - Buttons 1 & 2
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: button_1
+    id: "group1_on"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: button_2
+    id: "group1_off"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: button_1
+    id: "group1_brightness_up"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: button_2
+    id: "group1_brightness_down"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_release
+    subtype: button_1
+    id: "group1_stop"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_release
+    subtype: button_2
+    id: "group1_stop"
+  
+  # Group 2 - Buttons 3 & 4
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: button_3
+    id: "group2_on"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: button_4
+    id: "group2_off"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: button_3
+    id: "group2_brightness_up"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: button_4
+    id: "group2_brightness_down"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_release
+    subtype: button_3
+    id: "group2_stop"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_release
+    subtype: button_4
+    id: "group2_stop"
+  
+  # Group 3 - Buttons 5 & 6
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: button_5
+    id: "group3_on"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: button_6
+    id: "group3_off"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: button_5
+    id: "group3_brightness_up"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: button_6
+    id: "group3_brightness_down"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_release
+    subtype: button_5
+    id: "group3_stop"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_release
+    subtype: button_6
+    id: "group3_stop"
+
+action:
+  - choose:
+      # Group 1 Actions
+      - conditions:
+          - condition: trigger
+            id: "group1_on"
+        sequence:
+          - service: light.turn_on
+            target: !input light_group_1
+            data:
+              brightness_pct: 100
+      
+      - conditions:
+          - condition: trigger
+            id: "group1_off"
+        sequence:
+          - service: light.turn_off
+            target: !input light_group_1
+      
+      - conditions:
+          - condition: trigger
+            id: "group1_brightness_up"
+        sequence:
+          - repeat:
+              while:
+                - condition: template
+                  value_template: "{{ true }}"
+              sequence:
+                - service: light.turn_on
+                  target: !input light_group_1
+                  data:
+                    brightness_step_pct: !input brightness_step
+                - delay:
+                    milliseconds: 250
+      
+      - conditions:
+          - condition: trigger
+            id: "group1_brightness_down"
+        sequence:
+          - repeat:
+              while:
+                - condition: template
+                  value_template: "{{ true }}"
+              sequence:
+                - service: light.turn_on
+                  target: !input light_group_1
+                  data:
+                    brightness_step_pct: !input brightness_step
+                    brightness_step: -{{ brightness_step }}
+                - delay:
+                    milliseconds: 250
+      
+      # Group 2 Actions
+      - conditions:
+          - condition: trigger
+            id: "group2_on"
+        sequence:
+          - service: light.turn_on
+            target: !input light_group_2
+            data:
+              brightness_pct: 100
+      
+      - conditions:
+          - condition: trigger
+            id: "group2_off"
+        sequence:
+          - service: light.turn_off
+            target: !input light_group_2
+      
+      - conditions:
+          - condition: trigger
+            id: "group2_brightness_up"
+        sequence:
+          - repeat:
+              while:
+                - condition: template
+                  value_template: "{{ true }}"
+              sequence:
+                - service: light.turn_on
+                  target: !input light_group_2
+                  data:
+                    brightness_step_pct: !input brightness_step
+                - delay:
+                    milliseconds: 250
+      
+      - conditions:
+          - condition: trigger
+            id: "group2_brightness_down"
+        sequence:
+          - repeat:
+              while:
+                - condition: template
+                  value_template: "{{ true }}"
+              sequence:
+                - service: light.turn_on
+                  target: !input light_group_2
+                  data:
+                    brightness_step_pct: -{{ brightness_step }}
+                - delay:
+                    milliseconds: 250
+      
+      # Group 3 Actions
+      - conditions:
+          - condition: trigger
+            id: "group3_on"
+        sequence:
+          - service: light.turn_on
+            target: !input light_group_3
+            data:
+              brightness_pct: 100
+      
+      - conditions:
+          - condition: trigger
+            id: "group3_off"
+        sequence:
+          - service: light.turn_off
+            target: !input light_group_3
+      
+      - conditions:
+          - condition: trigger
+            id: "group3_brightness_up"
+        sequence:
+          - repeat:
+              while:
+                - condition: template
+                  value_template: "{{ true }}"
+              sequence:
+                - service: light.turn_on
+                  target: !input light_group_3
+                  data:
+                    brightness_step_pct: !input brightness_step
+                - delay:
+                    milliseconds: 250
+      
+      - conditions:
+          - condition: trigger
+            id: "group3_brightness_down"
+        sequence:
+          - repeat:
+              while:
+                - condition: template
+                  value_template: "{{ true }}"
+              sequence:
+                - service: light.turn_on
+                  target: !input light_group_3
+                  data:
+                    brightness_step_pct: -{{ brightness_step }}
+                - delay:
+                    milliseconds: 250
