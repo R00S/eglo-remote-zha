@@ -43,11 +43,15 @@ This repository serves as a development and testing environment ("hacks repo") f
 - ✅ Refresh button functionality
 - ✅ Short press and long press events
 
+**Known Issues**:
+- ⚠️ **Group selector buttons (1, 2, 3) are NOT YET MAPPED** - These buttons allow switching between 3 light groups
+- ⚠️ Currently all commands operate on a single context, cannot select different groups
+
 **In Progress**:
-- 🔄 Testing all button combinations
-- 🔄 Validating 3-group functionality
-- 🔄 Creating comprehensive blueprints
-- 🔄 Documentation for all button mappings
+- 🔄 Investigating group selector button implementation
+- 🔄 Understanding Zigbee Groups cluster (0x0004) usage
+- 🔄 Testing with physical device to capture group button events
+- 🔄 Documentation for complete button mappings including group selectors
 
 ## 📱 Supported Devices
 
@@ -80,10 +84,15 @@ This repository serves as a development and testing environment ("hacks repo") f
 ### Button Layout
 
 The AwoX ERCU_3groups_Zm has a more complex layout than a simple 3-group remote:
+### Button Layout
+
+The AwoX ERCU_3groups_Zm is indeed a **3-group remote control**:
 
 ```
 ┌─────────────────────────────────┐
 │      Eglo Remote 2.0 (AwoX)     │
+├─────────────────────────────────┤
+│  [1]    [2]    [3]              │  ← **Group Selectors** (NOT YET MAPPED)
 ├─────────────────────────────────┤
 │  [ON]              [OFF]        │  ← Power controls
 ├─────────────────────────────────┤
@@ -97,7 +106,17 @@ The AwoX ERCU_3groups_Zm has a more complex layout than a simple 3-group remote:
 └─────────────────────────────────┘
 ```
 
-**Button Functions (AwoX Model)**:
+**How It Works**:
+1. **Press button 1, 2, or 3** to select which group of lights to control
+2. **Then use the control buttons** (on/off, colors, brightness, etc.) on the selected group
+
+**Current Limitation**: 
+The group selector buttons (1, 2, 3) are **not yet mapped** in the quirk. This means:
+- ❌ Cannot switch between controlling different light groups
+- ❌ All commands currently operate in a single context
+- 🔄 Physical testing needed to understand what Zigbee commands these buttons send
+
+**Button Functions (Currently Mapped)**:
 - **ON/OFF**: Power control with short/long press
 - **Red/Green/Blue**: Select color (short press) or set to full saturation (long press)
 - **Cycle**: Cycle through colors (short press) or continuous cycle (long press)

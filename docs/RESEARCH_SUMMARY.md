@@ -76,20 +76,43 @@ The [referenced community thread](https://community.home-assistant.io/t/eglo-con
    - Not focused on AwoX capabilities
    - Missing button layout specific to AwoX remote
 
-### Critical Finding: The "Three Groups" Confusion
+### Critical Finding: The "Three Groups" ARE Real!
 
-The problem statement mentions "three sets of buttons" or "three groups". Upon analysis of the AwoX ERCU_3groups_Zm:
+**CORRECTION**: Previous documentation incorrectly concluded the "3groups" name was misleading. **This was wrong.**
 
-**The name "3groups" is misleading for the AwoX model!**
+The AwoX ERCU_3groups_Zm **IS** a 3-group remote control. The remote has physical buttons labeled **1, 2, 3** that select which group of lights to control.
 
-The AwoX ERCU_3groups_Zm is **NOT** a simple 3-group remote. Instead, it's an advanced color controller with:
-- Power controls (on/off)
-- Color controls (RGB + cycle)
-- Scene controls (2 scene buttons)
-- Brightness controls (up/down)
-- Color temperature controls (warm/cold)
+**Current Implementation Status**:
+- ❌ **Group selector buttons (1, 2, 3) are NOT mapped in the quirk**
+- ✅ Control buttons (on/off, colors, brightness, etc.) ARE mapped
+- ⚠️ This means the remote only works in a single-group mode currently
 
-The "3groups" in the name likely refers to the product line, not the button layout. This confusion may have led to inappropriate blueprint designs.
+**How 3-Group Remotes Typically Work**:
+
+Users press button 1, 2, or 3 to select which group of lights they want to control, then use the control buttons (on/off, brightness, colors, etc.) to operate that group. This allows controlling three independent groups of lights with one remote.
+
+**Possible Implementation Mechanisms**:
+
+Based on typical Zigbee 3-group remote patterns:
+
+1. **Zigbee Groups Cluster** (Most Likely):
+   - Buttons 1/2/3 send group selection commands via the Groups cluster (0x0004)
+   - Subsequent commands are sent to the selected Zigbee group (0x0001, 0x0002, 0x0003)
+   - The remote is stateful - it remembers which group is selected
+
+2. **Source Endpoint Switching** (Less Likely):
+   - Different groups use different source endpoints
+   - BUT: Device only has endpoints 1 and 3, not 1, 2, 3
+
+3. **Proprietary Group Selection** (Possible):
+   - Endpoint 3's proprietary clusters (0xFF50, 0xFF51) handle group selection
+   - Commands include group context in AwoX-specific format
+
+**What's Needed**:
+- Physical device testing to capture what Zigbee commands buttons 1/2/3 send
+- Update quirk to map these buttons
+- Blueprint modifications to support group selection
+- Documentation of complete button mappings
 
 
 ## Deep Dive: AwoX ERCU_3groups_Zm Technical Analysis
@@ -134,11 +157,13 @@ MODELS_INFO: [("AwoX", "ERCU_3groups_Zm")]
 
 ### Button Layout Analysis
 
-Based on the device_automation_triggers in the quirk, the AwoX remote has:
+Based on user feedback and the device name, the AwoX ERCU_3groups_Zm has:
 
 ```
 ┌─────────────────────────────────┐
 │   AwoX ERCU_3groups_Zm Layout   │
+├─────────────────────────────────┤
+│  [1]    [2]    [3]              │  ← Group Selectors (NOT MAPPED YET)
 ├─────────────────────────────────┤
 │  [ON]              [OFF]        │  ← Power (turn_on, turn_off)
 ├─────────────────────────────────┤
@@ -156,8 +181,24 @@ Based on the device_automation_triggers in the quirk, the AwoX remote has:
 └─────────────────────────────────┘
 ```
 
+**Group Selector Buttons (1, 2, 3) - NOT YET IMPLEMENTED**:
+- These buttons select which group of lights to control
+- After pressing 1, 2, or 3, subsequent control button presses operate on that group
+- **Current Status**: Not mapped in the quirk - physical testing needed to understand commands
+- **Impact**: Remote can only control one group currently, not three independent groups
+
+**Control Buttons - IMPLEMENTED**:
+
 ### Complete Button Mapping
 
+**Group Selector Buttons** (Currently NOT in quirk):
+| Button | Expected Action | Implementation Status |
+|--------|----------------|----------------------|
+| **1** | Select Group 1 for subsequent commands | ❌ NOT MAPPED - needs investigation |
+| **2** | Select Group 2 for subsequent commands | ❌ NOT MAPPED - needs investigation |
+| **3** | Select Group 3 for subsequent commands | ❌ NOT MAPPED - needs investigation |
+
+**Control Buttons** (Currently in quirk):
 | Button | Short Press Action | Long Press Action | Cluster | Command |
 |--------|-------------------|-------------------|---------|---------|
 | **ON** | Turn on lights | - | 6 (OnOff) | on |
@@ -192,15 +233,105 @@ Special refresh/sync command for AwoX-specific behavior.
 
 ### Understanding the "3 Groups" Reference
 
-After analysis, the "3groups" in ERCU_3groups_Zm likely refers to:
+**CORRECTION**: Initial analysis incorrectly concluded the "3groups" name was misleading. **This was wrong.**
 
-1. **Group 1**: Color and power control (ON, OFF, RGB, Cycle)
-2. **Group 2**: Scene and brightness control (Hearts, Dim Up/Down)
-3. **Group 3**: Temperature and special functions (Warm, Cold, Refresh)
+The "3groups" in ERCU_3groups_Zm **IS** meaningful and refers to actual functionality:
 
-However, this is **NOT** three independent light groups like the simple TS004F remote. This is a **functional grouping** of button types on a single advanced controller.
+**Correct Understanding**:
+1. **Group 1 (Button 1)**: Controls first set of lights
+2. **Group 2 (Button 2)**: Controls second set of lights  
+3. **Group 3 (Button 3)**: Controls third set of lights
 
-## Zigbee2MQTT Comparison for AwoX ERCU_3groups_Zm
+The remote allows controlling **three independent groups of lights** with one remote by:
+1. Pressing button 1, 2, or 3 to select the group
+2. Using control buttons (on/off, colors, brightness, temperature) on that group
+
+**Implementation Gap**:
+The group selector buttons (1, 2, 3) are **not currently mapped** in the quirk, which means:
+- Users cannot select between different groups
+- The remote effectively only works with one group
+- This is a significant missing feature that needs to be implemented
+
+**Typical Zigbee Implementation**:
+Based on common patterns for 3-group remotes, the buttons likely:
+- Send commands via the Zigbee Groups cluster (0x0004) - remote has this in input clusters
+- Include group ID (0x0001, 0x0002, 0x0003) in subsequent control commands
+- OR use the proprietary endpoint 3 clusters (0xFF50, 0xFF51) for group selection
+
+**Next Steps**:
+- Physical device testing to capture button 1/2/3 events
+- Determine which Zigbee commands/clusters they use
+- Update quirk to map these buttons
+- Update blueprint to support multi-group control
+
+## Research: How the 3 Groups Work
+
+### Internet Research Findings
+
+Based on typical Zigbee 3-group remote implementations and discussions:
+
+**Common Implementation Patterns**:
+
+1. **Zigbee Groups Cluster (Most Common)**:
+   - The remote uses the standard Zigbee Groups cluster (0x0004)
+   - Buttons 1/2/3 select which Zigbee group ID to target: 0x0001, 0x0002, 0x0003
+   - The remote maintains state about which group is currently selected
+   - All subsequent control commands are sent to the selected group
+   - Lights must be added to these Zigbee groups for the remote to control them
+
+2. **Source Endpoint Switching** (Less likely for this device):
+   - Each group uses a different source endpoint
+   - Group 1 = endpoint 1, Group 2 = endpoint 2, Group 3 = endpoint 3
+   - **Note**: This device only has endpoints 1 and 3, making this unlikely
+
+3. **Proprietary Group Management** (Possible):
+   - Endpoint 3's proprietary clusters (0xFF50, 0xFF51) handle group selection
+   - AwoX-specific group management outside standard Zigbee spec
+   - Would require reverse engineering or manufacturer documentation
+
+### For AwoX ERCU_3groups_Zm Specifically
+
+**Device Characteristics**:
+- Has Groups cluster (0x0004) in INPUT_CLUSTERS on endpoint 1
+- Has proprietary endpoint 3 with clusters 0xFF50, 0xFF51
+- Only 2 endpoints total (1 and 3), not 3 endpoints
+
+**Most Likely Implementation**: Zigbee Groups Cluster
+- Buttons 1/2/3 probably don't generate device automation triggers directly
+- Instead, they configure which Zigbee group subsequent commands target
+- This is why they appear to "do nothing" - they change state without generating events
+- Control buttons then send commands with the appropriate group address
+
+**Alternative Possibility**: Proprietary Endpoint 3
+- The 0xFF50/0xFF51 clusters on endpoint 3 could handle group management
+- Would explain why standard ZHA doesn't capture these button events
+- Requires investigation of endpoint 3 behavior
+
+### Testing Required
+
+To implement group selector buttons, we need to:
+
+1. **Capture Events**: Press buttons 1/2/3 while monitoring:
+   - ZHA event log
+   - Zigbee packet capture (if possible)
+   - Endpoint 3 activity
+   - Groups cluster commands
+
+2. **Test Behavior**: 
+   - Do buttons 1/2/3 generate ZHA events?
+   - Do they send group membership commands?
+   - Do they switch binding context?
+   - How do control buttons behave after selecting different groups?
+
+3. **Study Zigbee2MQTT**: 
+   - Check if Zigbee2MQTT has implemented group selector buttons
+   - Review their converter code for this device
+   - Compare exposed actions/events
+
+4. **Review User Manual**:
+   - Check Eglo documentation: https://www.eglo.com/media/wysiwyg/PDF/User_Guide_connect.z.pdf
+   - Look for group setup instructions
+   - Understand expected user workflow
 
 ### What Zigbee2MQTT Typically Exposes
 
