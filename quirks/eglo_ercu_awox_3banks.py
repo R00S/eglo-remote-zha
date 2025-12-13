@@ -73,6 +73,58 @@ GROUP_TO_BANK = {
 class Awox99099Remote3Banks(CustomDevice):
     """Custom device representing AwoX 99099 remote with 3-bank support"""
 
+    class AwoxOnOffCluster(CustomCluster, OnOff):
+        """Custom OnOff Cluster with group tracking"""
+
+        def handle_cluster_request(
+            self,
+            hdr: foundation.ZCLHeader,
+            args: list,
+            *,
+            dst_addressing=None,
+        ):
+            """Handle cluster request and extract group ID."""
+            # Extract group ID from destination addressing
+            group_id = None
+            if dst_addressing and hasattr(dst_addressing, 'group'):
+                group_id = dst_addressing.group
+                
+            # Map group ID to bank number
+            bank = GROUP_TO_BANK.get(group_id, 1) if group_id else 1
+            
+            # Store bank for potential use
+            self._current_bank = bank
+            
+            return super().handle_cluster_request(
+                hdr, args, dst_addressing=dst_addressing
+            )
+
+    class AwoxScenesCluster(CustomCluster, Scenes):
+        """Custom Scenes Cluster with group tracking"""
+
+        def handle_cluster_request(
+            self,
+            hdr: foundation.ZCLHeader,
+            args: list,
+            *,
+            dst_addressing=None,
+        ):
+            """Handle cluster request and extract group ID."""
+            # Extract group ID from destination addressing
+            group_id = None
+            if dst_addressing and hasattr(dst_addressing, 'group'):
+                group_id = dst_addressing.group
+                
+            # Map group ID to bank number
+            bank = GROUP_TO_BANK.get(group_id, 1) if group_id else 1
+            
+            # Store bank for potential use
+            self._current_bank = bank
+            
+            return super().handle_cluster_request(
+                hdr, args, dst_addressing=dst_addressing
+            )
+
     class AwoxColorCluster(CustomCluster, Color):
         """Awox Remote Custom Color Cluster with group tracking"""
 
@@ -84,21 +136,35 @@ class Awox99099Remote3Banks(CustomDevice):
             is_manufacturer_specific=True,
         )
 
-        def __init__(self, *args, **kwargs):
-            """Initialize cluster with group tracking."""
-            super().__init__(*args, **kwargs)
-            self._current_group = None
-
-        def handle_cluster_general_request(
-            self, hdr, args, *, dst_addressing=None
+        def handle_cluster_request(
+            self,
+            hdr: foundation.ZCLHeader,
+            args: list,
+            *,
+            dst_addressing=None,
         ):
-            """Intercept commands to extract group ID from destination addressing."""
-            # Extract group ID if present in destination addressing
+            """Handle cluster request and extract group ID."""
+            # Extract group ID from destination addressing
+            group_id = None
             if dst_addressing and hasattr(dst_addressing, 'group'):
-                self._current_group = dst_addressing.group
+                group_id = dst_addressing.group
+                
+            # Map group ID to bank number
+            bank = GROUP_TO_BANK.get(group_id, 1) if group_id else 1
             
-            # Continue with normal processing
-            return super().handle_cluster_general_request(
+            # Store bank for potential use
+            self._current_bank = bank
+            
+            # Get the command name
+            cmd_name = self.server_commands.get(hdr.command_id)
+            if cmd_name and hasattr(cmd_name, 'name'):
+                cmd_name = cmd_name.name
+            
+            # For manufacturer-specific commands or standard commands,
+            # the parent class will handle event emission
+            # We'll let the standard device_automation_triggers handle the mapping
+            
+            return super().handle_cluster_request(
                 hdr, args, dst_addressing=dst_addressing
             )
 
@@ -113,21 +179,30 @@ class Awox99099Remote3Banks(CustomDevice):
             is_manufacturer_specific=True,
         )
 
-        def __init__(self, *args, **kwargs):
-            """Initialize cluster with group tracking."""
-            super().__init__(*args, **kwargs)
-            self._current_group = None
-
-        def handle_cluster_general_request(
-            self, hdr, args, *, dst_addressing=None
+        def handle_cluster_request(
+            self,
+            hdr: foundation.ZCLHeader,
+            args: list,
+            *,
+            dst_addressing=None,
         ):
-            """Intercept commands to extract group ID from destination addressing."""
-            # Extract group ID if present in destination addressing
+            """Handle cluster request and extract group ID."""
+            # Extract group ID from destination addressing
+            group_id = None
             if dst_addressing and hasattr(dst_addressing, 'group'):
-                self._current_group = dst_addressing.group
+                group_id = dst_addressing.group
+                
+            # Map group ID to bank number
+            bank = GROUP_TO_BANK.get(group_id, 1) if group_id else 1
             
-            # Continue with normal processing
-            return super().handle_cluster_general_request(
+            # Store bank for potential use
+            self._current_bank = bank
+            
+            # For manufacturer-specific commands or standard commands,
+            # the parent class will handle event emission
+            # We'll let the standard device_automation_triggers handle the mapping
+            
+            return super().handle_cluster_request(
                 hdr, args, dst_addressing=dst_addressing
             )
 
@@ -192,8 +267,8 @@ class Awox99099Remote3Banks(CustomDevice):
                     Basic.cluster_id,
                     Identify.cluster_id,
                     Groups.cluster_id,
-                    Scenes.cluster_id,
-                    OnOff.cluster_id,
+                    AwoxScenesCluster,
+                    AwoxOnOffCluster,
                     AwoxLevelControlCluster,
                     AwoxColorCluster,
                     LightLink.cluster_id,
