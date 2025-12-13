@@ -1,5 +1,15 @@
 # Group Selector Buttons Investigation Guide
 
+## CRITICAL DISCOVERY: Likely Touchlink/LightLink Implementation
+
+**The 3-bank functionality is probably implemented using Touchlink bindings, which is UNORTHODOX.**
+
+This means:
+- Bank buttons (1/2/3) may NOT generate observable ZHA events
+- Banks are set up through physical proximity (Touchlink pairing)
+- Commands may go directly to lights, bypassing the coordinator
+- **Bank selection likely cannot be automated or mapped as triggers**
+
 ## Summary
 
 The AwoX ERCU_3groups_Zm has physical buttons labeled **1, 2, 3** that select which group of lights to control. These buttons are **NOT currently mapped** in the quirk.

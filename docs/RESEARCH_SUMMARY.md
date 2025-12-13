@@ -264,74 +264,145 @@ Based on common patterns for 3-group remotes, the buttons likely:
 - Update quirk to map these buttons
 - Update blueprint to support multi-group control
 
-## Research: How the 3 Groups Work
+## Research: How the 3 Groups Work - UNORTHODOX IMPLEMENTATION
 
-### Internet Research Findings
+### Critical Discovery: LightLink/Touchlink Binding
 
-Based on typical Zigbee 3-group remote implementations and discussions:
+The AwoX ERCU_3groups_Zm likely uses an **unorthodox implementation** of the 3 groups that differs from standard Zigbee group mechanisms.
 
-**Common Implementation Patterns**:
+**Key Observation**: The device has **LightLink cluster (0x1000)** in both input AND output clusters on endpoint 1. This is significant.
 
-1. **Zigbee Groups Cluster (Most Common)**:
-   - The remote uses the standard Zigbee Groups cluster (0x0004)
-   - Buttons 1/2/3 select which Zigbee group ID to target: 0x0001, 0x0002, 0x0003
-   - The remote maintains state about which group is currently selected
-   - All subsequent control commands are sent to the selected group
-   - Lights must be added to these Zigbee groups for the remote to control them
+### Most Likely Implementation: Touchlink Bindings
 
-2. **Source Endpoint Switching** (Less likely for this device):
-   - Each group uses a different source endpoint
-   - Group 1 = endpoint 1, Group 2 = endpoint 2, Group 3 = endpoint 3
-   - **Note**: This device only has endpoints 1 and 3, making this unlikely
+**How it probably works**:
 
-3. **Proprietary Group Management** (Possible):
-   - Endpoint 3's proprietary clusters (0xFF50, 0xFF51) handle group selection
-   - AwoX-specific group management outside standard Zigbee spec
-   - Would require reverse engineering or manufacturer documentation
+1. **Setup Phase** (User Manual describes this):
+   - User holds remote close to lights for bank 1
+   - Presses button 1 (possibly long press or special sequence)
+   - Remote creates **direct Touchlink binding** to those lights
+   - Repeat for banks 2 and 3 with different lights
 
-### For AwoX ERCU_3groups_Zm Specifically
+2. **Operational Phase**:
+   - User presses button 1/2/3 to select active bank
+   - Remote switches which binding table entry is active
+   - Control commands (on/off, dim, color) are sent via active binding
+   - Commands may go **directly to lights**, bypassing coordinator
 
-**Device Characteristics**:
-- Has Groups cluster (0x0004) in INPUT_CLUSTERS on endpoint 1
-- Has proprietary endpoint 3 with clusters 0xFF50, 0xFF51
-- Only 2 endpoints total (1 and 3), not 3 endpoints
+### Why This is "Unorthodox"
 
-**Most Likely Implementation**: Zigbee Groups Cluster
-- Buttons 1/2/3 probably don't generate device automation triggers directly
-- Instead, they configure which Zigbee group subsequent commands target
-- This is why they appear to "do nothing" - they change state without generating events
-- Control buttons then send commands with the appropriate group address
+**Different from Standard Zigbee Groups**:
+- Does NOT use Groups cluster (0x0004) in the typical way
+- Does NOT send group_id parameters in commands
+- Does NOT rely on coordinator routing
 
-**Alternative Possibility**: Proprietary Endpoint 3
-- The 0xFF50/0xFF51 clusters on endpoint 3 could handle group management
-- Would explain why standard ZHA doesn't capture these button events
-- Requires investigation of endpoint 3 behavior
+**Direct Binding Approach**:
+- Uses LightLink/Touchlink for direct device-to-device communication
+- Remote maintains its own binding table with 3 sets of bindings
+- Commands may be multicast directly to bound lights
+- **Coordinator might not see the commands at all**
 
-### Testing Required
+### Implications for ZHA Implementation
 
-To implement group selector buttons, we need to:
+**Critical Issue**: Bank selection buttons (1/2/3) might not generate observable events:
+- Pressing 1/2/3 changes remote's internal state (active binding)
+- No Zigbee commands may be sent when selecting banks
+- ZHA coordinator doesn't see bank selection happening
+- **We cannot "map" these buttons as traditional device automation triggers**
 
-1. **Capture Events**: Press buttons 1/2/3 while monitoring:
-   - ZHA event log
-   - Zigbee packet capture (if possible)
-   - Endpoint 3 activity
-   - Groups cluster commands
+**What CAN be done**:
+1. **Document the setup procedure**: How to bind lights to each bank
+2. **Verify binding table**: Check if remote shows 3 sets of bindings in ZHA
+3. **Test operation**: See if commands work independently per bank
+4. **User education**: Explain Touchlink setup process
 
-2. **Test Behavior**: 
-   - Do buttons 1/2/3 generate ZHA events?
-   - Do they send group membership commands?
-   - Do they switch binding context?
-   - How do control buttons behave after selecting different groups?
+**What CANNOT be done (easily)**:
+1. Bank selection as Home Assistant automation trigger
+2. Bank selection as blueprint input
+3. Automated bank switching from Home Assistant
 
-3. **Study Zigbee2MQTT**: 
-   - Check if Zigbee2MQTT has implemented group selector buttons
-   - Review their converter code for this device
-   - Compare exposed actions/events
+### Testing to Confirm This Theory
 
-4. **Review User Manual**:
-   - Check Eglo documentation: https://www.eglo.com/media/wysiwyg/PDF/User_Guide_connect.z.pdf
-   - Look for group setup instructions
-   - Understand expected user workflow
+1. **Check Binding Table**:
+   ```
+   ZHA → Device → Manage Zigbee Device → Bindings tab
+   ```
+   Look for multiple binding entries per cluster
+
+2. **Test Direct Operation**:
+   - Set up lights in different banks using remote's procedure
+   - Turn off ZHA coordinator temporarily
+   - Test if remote still controls lights (confirms direct binding)
+
+3. **Monitor Bank Button Presses**:
+   - Enable debug logging
+   - Press buttons 1/2/3
+   - If NO events appear, confirms stateful/binding approach
+
+4. **Check User Manual**:
+   - Look for "Touchlink", "direct pairing", "hold remote close to light"
+   - Setup instructions that don't involve the hub
+
+### Alternative Possibilities
+
+**Endpoint 3 Manages Bindings**:
+- Proprietary clusters 0xFF50/0xFF51 on endpoint 3
+- May handle bank selection via AwoX-specific protocol
+- Could send binding management commands
+- Still results in direct device-to-device operation
+
+**Hybrid Approach**:
+- Coordinator handles some commands (color, scenes)
+- Direct bindings handle basic commands (on/off, dim)
+- Banks switch between binding contexts
+
+### What "Special Treatment" Means
+
+The user's comment about "special treatment" likely refers to:
+
+1. **Cannot use standard ZHA group automation**:
+   - Won't work like IKEA remotes with multiple endpoints
+   - Won't work like standard Zigbee group controllers
+   - Requires understanding Touchlink operation
+
+2. **Setup is physical, not software**:
+   - Banks are configured by proximity (Touchlink)
+   - Cannot be configured remotely through ZHA
+   - User must follow manufacturer's pairing procedure
+
+3. **Documentation over automation**:
+   - Focus on documenting HOW to set up banks
+   - Explain the Touchlink binding process
+   - Accept that bank selection isn't automatable
+
+4. **Quirk limitations**:
+   - Quirk can expose control buttons (already done)
+   - Quirk likely CANNOT expose bank selection
+   - This is a hardware/protocol limitation, not a quirk issue
+
+### Updated Investigation Priority
+
+**High Priority**:
+1. Obtain and review user manual for setup procedure
+2. Test if remote has binding table entries (3 per cluster?)
+3. Confirm commands work with coordinator off (direct binding)
+4. Document the Touchlink setup process for users
+
+**Lower Priority** (may not be possible):
+5. Attempt to map bank buttons (likely won't generate events)
+6. Create automation for bank switching (probably not feasible)
+
+### Conclusion
+
+The 3-bank functionality is likely implemented through **Touchlink/LightLink bindings**, which is an unorthodox approach that:
+- Allows the remote to operate independently of the coordinator
+- Makes bank selection invisible to ZHA
+- Requires physical setup procedure (holding remote near lights)
+- Cannot be controlled or automated through Home Assistant
+
+This explains why:
+- Bank buttons "do nothing" visible to ZHA
+- The functionality isn't currently implemented
+- It needs "special treatment" as mentioned by the user
 
 ### What Zigbee2MQTT Typically Exposes
 

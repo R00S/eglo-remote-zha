@@ -55,13 +55,14 @@ This repository serves as a development and testing environment ("hacks repo") f
 
 ## 📱 Supported Devices
 
-### Primary Focus (Testable Device)
+### Primary Focus (Your Testable Device)
 
-#### Eglo ERCU_3groups_Zm (AwoX Variant) - **Active Development** 🔄
+#### AwoX ERCU_3groups_Zm (Eglo Remote 2.0) - **Active Development** 🔄
 - **Model**: ERCU_3groups_Zm / 99099
-- **Manufacturer**: AwoX (Eglo Remote 2.0)
-- **Type**: Advanced color remote with scene control
+- **Manufacturer**: AwoX
+- **Type**: Advanced color remote with 3-bank selection
 - **Features**: 
+  - **Bank selector buttons (1, 2, 3)** - NOT YET MAPPED ⚠️
   - On/Off control
   - Brightness dimming (up/down)
   - RGB color control (red, green, blue)
@@ -71,15 +72,21 @@ This repository serves as a development and testing environment ("hacks repo") f
 - **Quirk**: [`quirks/eglo_ercu_awox.py`](quirks/eglo_ercu_awox.py)
 - **Status**: Currently being tested with physical device
 
-### Secondary Support
+**This is YOUR device - the only one we should focus on for this issue.**
 
-#### Eglo ERCU_3groups_Zm (Tuya Variant) - **Community Supported** ✅
+---
+
+### Other Devices (Different Hardware - Not Relevant)
+
+#### TS004F (Tuya Variant) - **Different Device** ℹ️
 - **Model**: TS004F
-- **Manufacturer Code**: _TZ3000_4fjiwweb
+- **Manufacturer Code**: _TZ3000_4fjiwweb (Tuya)
 - **Type**: Simple 6-button remote (3 groups × 2 buttons)
 - **Features**: On/Off, Brightness control
 - **Quirk**: [`quirks/eglo_ercu_3groups.py`](quirks/eglo_ercu_3groups.py)
-- **Status**: Reported working by community
+- **Status**: Community-supported, but NOT the AwoX remote
+
+**Note**: Despite similar naming, TS004F and AwoX ERCU_3groups_Zm are **completely different devices** with different manufacturers, different button layouts, and different functionality. Do not confuse them.
 
 ### Button Layout
 
@@ -126,9 +133,9 @@ The group selector buttons (1, 2, 3) are **not yet mapped** in the quirk. This m
 
 For the simpler Tuya variant (TS004F), see the [quirks documentation](quirks/README.md).
 
-## 🚀 Quick Start
+### Installation (AwoX ERCU_3groups_Zm ONLY)
 
-### Installation (AwoX ERCU_3groups_Zm)
+**Note**: These instructions are ONLY for the **AwoX ERCU_3groups_Zm** (Eglo Remote 2.0). If you have the TS004F (Tuya variant), that's a different device entirely.
 
 #### Step 1: Copy the Quirk File
 
@@ -168,10 +175,11 @@ zha:
 
 5. **Verify the quirk loaded**:
    - Check device info in ZHA
-   - Should show: Manufacturer: "AwoX", Model: "ERCU_3groups_Zm"
-   - Quirk class: "Awox99099Remote"
+   - Should show: Manufacturer: "**AwoX**", Model: "**ERCU_3groups_Zm**"
+   - Quirk class: "**Awox99099Remote**"
+   - **NOT** TS004F or Tuya - that's a different device!
 
-#### Alternative: Tuya TS004F Variant
+#### Alternative: If You Have the TS004F (Different Device)
 
 If you have the Tuya variant instead:
 - Use `quirks/eglo_ercu_3groups.py` instead
