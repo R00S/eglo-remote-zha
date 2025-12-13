@@ -29,96 +29,135 @@ This repository serves as a development and testing environment ("hacks repo") f
 
 ## 🎯 Project Status
 
-**Current State**: Active development - Repository reorganized as hacks/development environment
+**Current State**: Active development - Focus on **AwoX ERCU_3groups_Zm** (testable device)
+
+**Primary Device**: AwoX ERCU_3groups_Zm (Eglo Remote 2.0)  
+**Status**: 🔄 Testing and validation in progress
 
 **What Works**:
-- ✅ All 6 buttons (3 groups) working in ZHA
-- ✅ Short press events (on/off)
-- ✅ Long press events (dimming up/down)
-- ✅ Long release events (stop dimming)
-- ✅ Working blueprints for basic automation
-- ✅ Proper device automation triggers
+- ✅ On/Off buttons working
+- ✅ Brightness control (dim up/down)
+- ✅ Color control buttons (red, green, blue)
+- ✅ Scene recall buttons (heart 1, heart 2)
+- ✅ Color temperature control (warm/cold)
+- ✅ Refresh button functionality
+- ✅ Short press and long press events
 
 **In Progress**:
-- 🔄 Advanced button events (double-press, triple-press)
-- 🔄 Support for additional Eglo/AwoX models
-- 🔄 Enhanced color control blueprints
-- 🔄 Matching Zigbee2MQTT feature completeness
+- 🔄 Testing all button combinations
+- 🔄 Validating 3-group functionality
+- 🔄 Creating comprehensive blueprints
+- 🔄 Documentation for all button mappings
 
 ## 📱 Supported Devices
 
-### Currently Supported
+### Primary Focus (Testable Device)
 
-#### Eglo ERCU_3groups_Zm (Tuya Variant) - **Fully Supported** ✅
-- **Model**: TS004F
-- **Manufacturer Code**: _TZ3000_4fjiwweb
-- **Type**: 6-button remote (3 groups × 2 buttons)
-- **Features**: On/Off, Brightness control
-- **Quirk**: [`quirks/eglo_ercu_3groups.py`](quirks/eglo_ercu_3groups.py)
-
-#### Eglo ERCU_3groups_Zm (AwoX Variant) - **In Development** 🔄
+#### Eglo ERCU_3groups_Zm (AwoX Variant) - **Active Development** 🔄
 - **Model**: ERCU_3groups_Zm / 99099
 - **Manufacturer**: AwoX (Eglo Remote 2.0)
-- **Type**: Color remote with scene control
-- **Features**: On/Off, Brightness, Color control, Scenes
+- **Type**: Advanced color remote with scene control
+- **Features**: 
+  - On/Off control
+  - Brightness dimming (up/down)
+  - RGB color control (red, green, blue)
+  - Color temperature (warm/cold)
+  - Scene recall (2 scenes)
+  - Refresh/cycle function
 - **Quirk**: [`quirks/eglo_ercu_awox.py`](quirks/eglo_ercu_awox.py)
+- **Status**: Currently being tested with physical device
+
+### Secondary Support
+
+#### Eglo ERCU_3groups_Zm (Tuya Variant) - **Community Supported** ✅
+- **Model**: TS004F
+- **Manufacturer Code**: _TZ3000_4fjiwweb
+- **Type**: Simple 6-button remote (3 groups × 2 buttons)
+- **Features**: On/Off, Brightness control
+- **Quirk**: [`quirks/eglo_ercu_3groups.py`](quirks/eglo_ercu_3groups.py)
+- **Status**: Reported working by community
 
 ### Button Layout
 
-All variants have 6 buttons arranged in 3 groups:
+The AwoX ERCU_3groups_Zm has a more complex layout than a simple 3-group remote:
 
 ```
-┌─────────┬─────────┬─────────┐
-│ Button 1│ Button 3│ Button 5│  ← Top row (ON/Bright)
-│ Group 1 │ Group 2 │ Group 3 │
-├─────────┼─────────┼─────────┤
-│ Button 2│ Button 4│ Button 6│  ← Bottom row (OFF/Dim)
-│ Group 1 │ Group 2 │ Group 3 │
-└─────────┴─────────┴─────────┘
+┌─────────────────────────────────┐
+│      Eglo Remote 2.0 (AwoX)     │
+├─────────────────────────────────┤
+│  [ON]              [OFF]        │  ← Power controls
+├─────────────────────────────────┤
+│  [Red] [Green] [Blue] [Cycle]   │  ← Color controls
+├─────────────────────────────────┤
+│  [Heart1]         [Heart2]      │  ← Scene recall
+├─────────────────────────────────┤
+│  [Dim▲]           [Dim▼]        │  ← Brightness
+├─────────────────────────────────┤
+│  [Warm]           [Cold]        │  ← Color temperature
+└─────────────────────────────────┘
 ```
 
-Each button supports:
-- **Short Press**: Turn on/off or trigger action
-- **Long Press**: Start dimming (up for top buttons, down for bottom buttons)
-- **Long Release**: Stop dimming
+**Button Functions (AwoX Model)**:
+- **ON/OFF**: Power control with short/long press
+- **Red/Green/Blue**: Select color (short press) or set to full saturation (long press)
+- **Cycle**: Cycle through colors (short press) or continuous cycle (long press)
+- **Heart 1/2**: Recall saved scenes
+- **Dim Up/Down**: Adjust brightness (short press step, long press to max/min)
+- **Warm/Cold**: Adjust color temperature (short press step, long press to extreme)
+
+For the simpler Tuya variant (TS004F), see the [quirks documentation](quirks/README.md).
 
 ## 🚀 Quick Start
 
-### Installation
+### Installation (AwoX ERCU_3groups_Zm)
 
-#### Option 1: Using Custom Quirks Directory (Recommended)
+#### Step 1: Copy the Quirk File
 
 1. **Create the quirks directory** in your Home Assistant configuration:
    ```bash
    mkdir -p /config/zhaquirks
    ```
 
-2. **Copy the appropriate quirk file**:
-   - For **TS004F** (Tuya variant): Copy `quirks/eglo_ercu_3groups.py`
-   - For **AwoX** variant: Copy `quirks/eglo_ercu_awox.py`
-   
+2. **Copy the AwoX quirk file**:
    ```bash
-   # Example for TS004F
-   cp quirks/eglo_ercu_3groups.py /config/zhaquirks/
+   cp quirks/eglo_ercu_awox.py /config/zhaquirks/
    ```
 
-3. **Configure ZHA** to use custom quirks in `configuration.yaml`:
-   ```yaml
-   zha:
-     custom_quirks_path: /config/zhaquirks/
-   ```
+#### Step 2: Configure ZHA
 
-4. **Restart Home Assistant**
+Add to your `configuration.yaml`:
+```yaml
+zha:
+  custom_quirks_path: /config/zhaquirks/
+```
 
-5. **Remove and re-pair your Eglo remote**:
-   - Remove the device from ZHA
-   - Reset the remote (hold any button for ~10 seconds until LED flashes)
+#### Step 3: Restart and Pair
+
+1. **Restart Home Assistant**
+
+2. **Remove the device** if already paired:
+   - Go to Configuration → Devices & Services → ZHA
+   - Find the Eglo remote and remove it
+
+3. **Reset the remote**:
+   - Hold any button for ~10 seconds until LED flashes rapidly
+
+4. **Pair the device**:
    - Put ZHA in pairing mode
-   - Press any button on the remote to pair
+   - Press any button on the remote
+   - Wait for pairing to complete
 
-#### Option 2: Contributing to ZHA Device Handlers
+5. **Verify the quirk loaded**:
+   - Check device info in ZHA
+   - Should show: Manufacturer: "AwoX", Model: "ERCU_3groups_Zm"
+   - Quirk class: "Awox99099Remote"
 
-This quirk can be submitted to the official [zha-device-handlers](https://github.com/zigpy/zha-device-handlers) repository. See our [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+#### Alternative: Tuya TS004F Variant
+
+If you have the Tuya variant instead:
+- Use `quirks/eglo_ercu_3groups.py` instead
+- Follow the same installation steps
+- See [quirks README](quirks/README.md) for specific instructions
 
 ### Installing Blueprints
 

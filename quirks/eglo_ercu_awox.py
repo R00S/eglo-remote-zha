@@ -48,7 +48,7 @@ COMMAND_RECALL = "recall"
 
 
 class Awox99099Remote(CustomDevice):
-    """Custom device representing AwoX 99099 remote (EGLO Remote 2.o)"""
+    """Custom device representing AwoX 99099 remote (EGLO Remote 2.0)"""
 
     class AwoxColorCluster(CustomCluster, Color):
         """Awox Remote Custom Color Cluster"""
