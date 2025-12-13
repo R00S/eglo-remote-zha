@@ -31,7 +31,15 @@ try:
         "Awox99099Remote, Awox99099Remote3Banks, EgloERCU3Groups"
     )
 except ImportError as err:
-    _LOGGER.error("Failed to import Eglo Remote ZHA quirks: %s", err)
+    _LOGGER.error(
+        "Failed to import Eglo Remote ZHA quirks. This usually means zigpy is not "
+        "installed or ZHA is not enabled. Error: %s", err
+    )
+    raise
+except Exception as err:
+    _LOGGER.error(
+        "Unexpected error loading Eglo Remote ZHA quirks: %s", err
+    )
     raise
 
 __all__ = ["EgloERCU3Groups", "Awox99099Remote", "Awox99099Remote3Banks"]
