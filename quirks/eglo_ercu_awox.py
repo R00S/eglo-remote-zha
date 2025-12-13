@@ -1,4 +1,4 @@
-"""Device handler for Avox 99099 Remote (Eglo Remote 2.0)"""
+"""Device handler for AwoX 99099 Remote (Eglo Remote 2.0)"""
 
 from zigpy.profiles import zha
 from zigpy.quirks import CustomCluster, CustomDevice

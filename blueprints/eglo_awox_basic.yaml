@@ -212,7 +212,7 @@ action:
           - service: light.turn_on
             target: !input target_light
             data:
-              color_temp: "{{ state_attr(target_light.entity_id, 'color_temp') | int + 20 }}"
+              kelvin: 3000  # Warm white
       
       - conditions:
           - condition: trigger
@@ -221,7 +221,7 @@ action:
           - service: light.turn_on
             target: !input target_light
             data:
-              color_temp: "{{ state_attr(target_light.entity_id, 'color_temp') | int - 20 }}"
+              kelvin: 5000  # Cool white
       
       - conditions:
           - condition: trigger
@@ -230,7 +230,7 @@ action:
           - service: light.turn_on
             target: !input target_light
             data:
-              color_temp: 454
+              kelvin: 2200  # Warmest (matches 454 mireds)
       
       - conditions:
           - condition: trigger
@@ -239,4 +239,4 @@ action:
           - service: light.turn_on
             target: !input target_light
             data:
-              color_temp: 153
+              kelvin: 6536  # Coldest (matches 153 mireds)
