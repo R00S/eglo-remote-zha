@@ -1,8 +1,33 @@
 # Deep Debugging Bank Buttons 1/2/3
 
-## Goal
+## BREAKTHROUGH DISCOVERY! ✅
 
-Discover what pressing bank buttons 1, 2, and 3 actually does at the Zigbee protocol level.
+**Bank buttons DO send detectable commands!**
+
+They send **Scene Recall** events on the Scenes cluster (0x0005):
+- `cluster_id`: 0x0005 (Scenes)
+- `command`: Recall Scene
+- `group_id`: 0 (broadcast)
+- `scene_id`: Different values for each bank button (0, 1, 2 or 1, 2, 3)
+
+### Example from Activity Log:
+```
+test remote Recall event was fired with parameters: 
+{'group_id': 0, 'scene_id': 1, 'transition_time': None}
+
+test remote Recall event was fired with parameters: 
+{'group_id': 0, 'scene_id': 2, 'transition_time': None}
+```
+
+### Next Steps:
+1. Determine scene_id mapping (which button sends which scene_id)
+2. Implement quirk to track bank selection via scene commands
+3. Emit bank-specific events (dim_up_1, dim_up_2, dim_up_3)
+4. Full automatic 3-bank functionality! 🎉
+
+---
+
+## Original Debug Guide (Kept for Reference)
 
 ## Why We Need This
 
