@@ -45,6 +45,9 @@ blueprint:
 mode: restart
 max_exceeded: silent
 
+variables:
+  brightness_step: !input brightness_step
+
 trigger:
   # Power Control
   - platform: device
