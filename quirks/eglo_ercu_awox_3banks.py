@@ -125,13 +125,29 @@ class Awox99099Remote3Banks(CustomDevice):
             dst_addressing=None,
         ):
             """Handle cluster request and extract group ID."""
+            import logging
+            _LOGGER = logging.getLogger(__name__)
+            
+            # Debug: Log everything we can see
+            _LOGGER.warning(
+                "AwoxScenesCluster: cmd_id=%s, dst_addressing=%s, "
+                "has_group=%s, group=%s, args=%s",
+                hdr.command_id,
+                dst_addressing,
+                hasattr(dst_addressing, 'group') if dst_addressing else False,
+                getattr(dst_addressing, 'group', None) if dst_addressing else None,
+                args
+            )
+            
             # Extract group ID from destination addressing
             group_id = None
             if dst_addressing and hasattr(dst_addressing, 'group'):
                 group_id = dst_addressing.group
+                _LOGGER.warning("AwoxScenesCluster: Extracted group_id=%s", group_id)
                 
             # Map group ID to bank number
             bank = GROUP_TO_BANK.get(group_id, 1) if group_id else 1
+            _LOGGER.warning("AwoxScenesCluster: Mapped to bank=%s", bank)
             
             # Store bank for potential use
             self._current_bank = bank

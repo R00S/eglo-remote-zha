@@ -23,13 +23,14 @@ _LOGGER = logging.getLogger(__name__)
 # and automatically registered with zigpy's DEVICE_REGISTRY
 try:
     from .eglo_ercu_3groups import EgloERCU3Groups
-    # Use 3-bank quirk with debug logging to investigate group_id capture
+    # Temporarily use 3-bank quirk with enhanced debug logging to detect bank buttons
+    # Testing if bank buttons send scene commands or other events
     from .eglo_ercu_awox_3banks import Awox99099Remote3Banks
     # from .eglo_ercu_awox import Awox99099Remote
     
     _LOGGER.debug(
         "Eglo Remote ZHA quirks imported successfully: "
-        "Awox99099Remote3Banks (with debug logging), EgloERCU3Groups"
+        "Awox99099Remote3Banks (testing bank button detection), EgloERCU3Groups"
     )
 except ImportError as err:
     _LOGGER.error(
