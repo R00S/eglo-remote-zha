@@ -23,15 +23,13 @@ _LOGGER = logging.getLogger(__name__)
 # and automatically registered with zigpy's DEVICE_REGISTRY
 try:
     from .eglo_ercu_3groups import EgloERCU3Groups
-    # Import 3-bank quirk as default for AwoX ERCU_3groups_Zm
-    # The basic Awox99099Remote quirk is kept in the codebase for reference
-    # but not imported, so the 3-bank version is used by default
-    # from .eglo_ercu_awox import Awox99099Remote
+    # Use 3-bank quirk with debug logging to investigate group_id capture
     from .eglo_ercu_awox_3banks import Awox99099Remote3Banks
+    # from .eglo_ercu_awox import Awox99099Remote
     
     _LOGGER.debug(
         "Eglo Remote ZHA quirks imported successfully: "
-        "Awox99099Remote3Banks (default for AwoX), EgloERCU3Groups"
+        "Awox99099Remote3Banks (with debug logging), EgloERCU3Groups"
     )
 except ImportError as err:
     _LOGGER.error(

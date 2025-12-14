@@ -1,12 +1,11 @@
 blueprint:
-  name: Eglo Remote 2.0 (AwoX 99099) - Single Bank Control
+  name: Eglo Remote 2.0 (AwoX 99099) - Light Control
   description: >
     Control lights with the Eglo Remote 2.0 (AwoX ERCU_3groups_Zm / Model 99099).
+    Includes on/off, brightness, and basic color/temperature control.
     
-    **Important**: This remote has 3 banks. Create 3 separate automations (one for each bank).
-    Press buttons 1/2/3 on the remote to switch between banks.
-    
-    Includes on/off, brightness, colors, temperature, scenes, and refresh controls.
+    **Note**: The 3-bank functionality is not yet supported. All buttons control the same lights.
+    The bank buttons (1/2/3) don't generate separate events in Home Assistant currently.
   domain: automation
   input:
     remote:
@@ -17,32 +16,13 @@ blueprint:
           integration: zha
           manufacturer: AwoX
           model: ERCU_3groups_Zm
-    
-    bank:
-      name: Bank Number
-      description: |
-        Which bank to control (1, 2, or 3).
-        Press button 1/2/3 on the remote to switch to this bank.
-        Create 3 separate automations to use all banks.
-      selector:
-        select:
-          options:
-            - label: "Bank 1"
-              value: "1"
-            - label: "Bank 2"
-              value: "2"
-            - label: "Bank 3"
-              value: "3"
-      default: "1"
-    
     target_light:
       name: Target Light(s)
-      description: The light(s) or light group to control with this bank
+      description: The light(s) or light group to control
       selector:
         target:
           entity:
             domain: light
-    
     brightness_step:
       name: Brightness Step
       description: Percentage to change brightness with each dim button press
@@ -56,306 +36,92 @@ blueprint:
 mode: restart
 max_exceeded: silent
 
-variables:
-  bank_var: !input bank
-
 trigger:
-  # Power Control - Bank 1
+  # Power Control
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_short_press
-    subtype: turn_on_1
+    subtype: turn_on
     id: "turn_on"
-    enabled: "{{ bank_var == '1' }}"
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_short_press
-    subtype: turn_off_1
+    subtype: turn_off
     id: "turn_off"
-    enabled: "{{ bank_var == '1' }}"
   
-  # Power Control - Bank 2
+  # Brightness Control
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_short_press
-    subtype: turn_on_2
-    id: "turn_on"
-    enabled: "{{ bank_var == '2' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: turn_off_2
-    id: "turn_off"
-    enabled: "{{ bank_var == '2' }}"
-  
-  # Power Control - Bank 3
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: turn_on_3
-    id: "turn_on"
-    enabled: "{{ bank_var == '3' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: turn_off_3
-    id: "turn_off"
-    enabled: "{{ bank_var == '3' }}"
-  
-  # Brightness Control - Bank 1
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: dim_up_1
+    subtype: dim_up
     id: "brightness_up_short"
-    enabled: "{{ bank_var == '1' }}"
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_long_press
-    subtype: dim_up_1
+    subtype: dim_up
     id: "brightness_max"
-    enabled: "{{ bank_var == '1' }}"
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_short_press
-    subtype: dim_down_1
+    subtype: dim_down
     id: "brightness_down_short"
-    enabled: "{{ bank_var == '1' }}"
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_long_press
-    subtype: dim_down_1
+    subtype: dim_down
     id: "brightness_min"
-    enabled: "{{ bank_var == '1' }}"
   
-  # Brightness Control - Bank 2
+  # Color Control
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_short_press
-    subtype: dim_up_2
-    id: "brightness_up_short"
-    enabled: "{{ bank_var == '2' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_long_press
-    subtype: dim_up_2
-    id: "brightness_max"
-    enabled: "{{ bank_var == '2' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: dim_down_2
-    id: "brightness_down_short"
-    enabled: "{{ bank_var == '2' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_long_press
-    subtype: dim_down_2
-    id: "brightness_min"
-    enabled: "{{ bank_var == '2' }}"
-  
-  # Brightness Control - Bank 3
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: dim_up_3
-    id: "brightness_up_short"
-    enabled: "{{ bank_var == '3' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_long_press
-    subtype: dim_up_3
-    id: "brightness_max"
-    enabled: "{{ bank_var == '3' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: dim_down_3
-    id: "brightness_down_short"
-    enabled: "{{ bank_var == '3' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_long_press
-    subtype: dim_down_3
-    id: "brightness_min"
-    enabled: "{{ bank_var == '3' }}"
-  
-  # Color Control - Bank 1
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: red_1
+    subtype: red
     id: "color_red"
-    enabled: "{{ bank_var == '1' }}"
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_short_press
-    subtype: green_1
+    subtype: green
     id: "color_green"
-    enabled: "{{ bank_var == '1' }}"
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_short_press
-    subtype: blue_1
+    subtype: blue
     id: "color_blue"
-    enabled: "{{ bank_var == '1' }}"
   
-  # Color Control - Bank 2
+  # Color Temperature
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_short_press
-    subtype: red_2
-    id: "color_red"
-    enabled: "{{ bank_var == '2' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: green_2
-    id: "color_green"
-    enabled: "{{ bank_var == '2' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: blue_2
-    id: "color_blue"
-    enabled: "{{ bank_var == '2' }}"
-  
-  # Color Control - Bank 3
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: red_3
-    id: "color_red"
-    enabled: "{{ bank_var == '3' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: green_3
-    id: "color_green"
-    enabled: "{{ bank_var == '3' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: blue_3
-    id: "color_blue"
-    enabled: "{{ bank_var == '3' }}"
-  
-  # Color Temperature - Bank 1
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: warm_1
+    subtype: warm
     id: "color_temp_warm"
-    enabled: "{{ bank_var == '1' }}"
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_short_press
-    subtype: cold_1
+    subtype: cold
     id: "color_temp_cold"
-    enabled: "{{ bank_var == '1' }}"
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_long_press
-    subtype: warm_1
+    subtype: warm
     id: "color_temp_warmest"
-    enabled: "{{ bank_var == '1' }}"
   - platform: device
     domain: zha
     device_id: !input remote
     type: remote_button_long_press
-    subtype: cold_1
+    subtype: cold
     id: "color_temp_coldest"
-    enabled: "{{ bank_var == '1' }}"
-  
-  # Color Temperature - Bank 2
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: warm_2
-    id: "color_temp_warm"
-    enabled: "{{ bank_var == '2' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: cold_2
-    id: "color_temp_cold"
-    enabled: "{{ bank_var == '2' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_long_press
-    subtype: warm_2
-    id: "color_temp_warmest"
-    enabled: "{{ bank_var == '2' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_long_press
-    subtype: cold_2
-    id: "color_temp_coldest"
-    enabled: "{{ bank_var == '2' }}"
-  
-  # Color Temperature - Bank 3
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: warm_3
-    id: "color_temp_warm"
-    enabled: "{{ bank_var == '3' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_short_press
-    subtype: cold_3
-    id: "color_temp_cold"
-    enabled: "{{ bank_var == '3' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_long_press
-    subtype: warm_3
-    id: "color_temp_warmest"
-    enabled: "{{ bank_var == '3' }}"
-  - platform: device
-    domain: zha
-    device_id: !input remote
-    type: remote_button_long_press
-    subtype: cold_3
-    id: "color_temp_coldest"
-    enabled: "{{ bank_var == '3' }}"
 
 action:
   - choose:
