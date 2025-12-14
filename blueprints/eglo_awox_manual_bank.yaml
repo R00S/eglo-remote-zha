@@ -1,0 +1,254 @@
+blueprint:
+  name: Eglo/AwoX Remote - Simple Bank Control (Manual Selection)
+  description: >
+    Control lights with the Eglo/AwoX ERCU_3groups_Zm remote.
+    
+    **How 3-Bank Mode Works**:
+    1. Create 3 copies of this automation (one for each bank)
+    2. Assign different lights to each automation
+    3. When you want to control Bank 1 lights: Enable "Bank 1" automation, disable others
+    4. When you want to control Bank 2 lights: Enable "Bank 2" automation, disable others
+    5. When you want to control Bank 3 lights: Enable "Bank 3" automation, disable others
+    
+    **Note**: Bank selection happens by enabling/disabling automations in Home Assistant.
+    The physical bank buttons (1/2/3) don't send detectable events to Home Assistant.
+    
+  domain: automation
+  input:
+    remote:
+      name: Eglo Remote
+      description: The AwoX ERCU_3groups_Zm remote to use
+      selector:
+        device:
+          integration: zha
+          manufacturer: AwoX
+          model: ERCU_3groups_Zm
+    
+    target_light:
+      name: Target Light(s)
+      description: The light(s) or light group to control
+      selector:
+        target:
+          entity:
+            domain: light
+    
+    brightness_step:
+      name: Brightness Step
+      description: Percentage to change brightness with each dim button press
+      default: 10
+      selector:
+        number:
+          min: 5
+          max: 25
+          unit_of_measurement: "%"
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  # Power Control
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: turn_on
+    id: "turn_on"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: turn_off
+    id: "turn_off"
+  
+  # Brightness Control
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: dim_up
+    id: "brightness_up_short"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: dim_up
+    id: "brightness_max"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: dim_down
+    id: "brightness_down_short"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: dim_down
+    id: "brightness_min"
+  
+  # Color Control
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: red
+    id: "color_red"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: green
+    id: "color_green"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: blue
+    id: "color_blue"
+  
+  # Color Temperature
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: warm
+    id: "color_temp_warm"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_short_press
+    subtype: cold
+    id: "color_temp_cold"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: warm
+    id: "color_temp_warmest"
+  - platform: device
+    domain: zha
+    device_id: !input remote
+    type: remote_button_long_press
+    subtype: cold
+    id: "color_temp_coldest"
+
+action:
+  - choose:
+      # Power Control
+      - conditions:
+          - condition: trigger
+            id: "turn_on"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              brightness_pct: 100
+      
+      - conditions:
+          - condition: trigger
+            id: "turn_off"
+        sequence:
+          - service: light.turn_off
+            target: !input target_light
+      
+      # Brightness Control
+      - conditions:
+          - condition: trigger
+            id: "brightness_up_short"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              brightness_step_pct: !input brightness_step
+      
+      - conditions:
+          - condition: trigger
+            id: "brightness_down_short"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              brightness_step_pct: "{{ -(brightness_step | int) }}"
+      
+      - conditions:
+          - condition: trigger
+            id: "brightness_max"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              brightness_pct: 100
+      
+      - conditions:
+          - condition: trigger
+            id: "brightness_min"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              brightness_pct: 1
+      
+      # Color Control
+      - conditions:
+          - condition: trigger
+            id: "color_red"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              rgb_color: [255, 0, 0]
+      
+      - conditions:
+          - condition: trigger
+            id: "color_green"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              rgb_color: [0, 255, 0]
+      
+      - conditions:
+          - condition: trigger
+            id: "color_blue"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              rgb_color: [0, 0, 255]
+      
+      # Color Temperature Control
+      - conditions:
+          - condition: trigger
+            id: "color_temp_warm"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              kelvin: 3000  # Warm white
+      
+      - conditions:
+          - condition: trigger
+            id: "color_temp_cold"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              kelvin: 5000  # Cool white
+      
+      - conditions:
+          - condition: trigger
+            id: "color_temp_warmest"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              kelvin: 2200  # Warmest (matches 454 mireds)
+      
+      - conditions:
+          - condition: trigger
+            id: "color_temp_coldest"
+        sequence:
+          - service: light.turn_on
+            target: !input target_light
+            data:
+              kelvin: 6536  # Coldest (matches 153 mireds)
