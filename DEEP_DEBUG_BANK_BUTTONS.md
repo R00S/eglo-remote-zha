@@ -1,29 +1,33 @@
 # Deep Debugging Bank Buttons 1/2/3
 
-## BREAKTHROUGH DISCOVERY! ✅
+## Investigation Results: Bank Buttons Don't Send Commands ❌
 
-**Bank buttons DO send detectable commands!**
+After thorough testing, we've confirmed that bank buttons (1/2/3) **do NOT send detectable Zigbee commands** to Home Assistant.
 
-They send **Scene Recall** events on the Scenes cluster (0x0005):
-- `cluster_id`: 0x0005 (Scenes)
-- `command`: Recall Scene
-- `group_id`: 0 (broadcast)
-- `scene_id`: Different values for each bank button (0, 1, 2 or 1, 2, 3)
+### What Was Tested
 
-### Example from Activity Log:
-```
-test remote Recall event was fired with parameters: 
-{'group_id': 0, 'scene_id': 1, 'transition_time': None}
+1. **ZHA Event Monitoring** - No events when pressing 1/2/3
+2. **Activity Log Monitoring** - No recall/scene events from bank buttons
+3. **Debug Logging** - `dst_addressing=None` for all buttons
 
-test remote Recall event was fired with parameters: 
-{'group_id': 0, 'scene_id': 2, 'transition_time': None}
-```
+**Note**: Scene recall events (scene_id 1, 2) seen in testing were from the heart/scene buttons, NOT bank buttons.
 
-### Next Steps:
-1. Determine scene_id mapping (which button sends which scene_id)
-2. Implement quirk to track bank selection via scene commands
-3. Emit bank-specific events (dim_up_1, dim_up_2, dim_up_3)
-4. Full automatic 3-bank functionality! 🎉
+### Conclusion
+
+Bank buttons operate at **firmware/MAC layer only**:
+- They change the remote's internal state
+- No Zigbee commands are sent to coordinator
+- Cannot be detected by Home Assistant/ZHA
+- Automatic bank detection is **not possible**
+
+### Solution
+
+The **manual workaround** documented in `3BANK_WORKAROUND_SOLUTION.md` is the only viable approach:
+1. Create 3 separate automations (one per bank)
+2. Enable/disable automations to match physical bank selection
+3. Optional: Add helper automation for convenient switching
+
+This provides full 3-bank functionality with minimal manual synchronization.
 
 ---
 
