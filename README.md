@@ -1,3 +1,5 @@
+Not ready to use yet
+
 # Eglo Remote ZHA
 
 > 🔧 **Custom ZHA integration for Eglo remote controls with universal device control**
