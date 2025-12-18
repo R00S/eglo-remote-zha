@@ -81,8 +81,7 @@ variables:
   
   # Filter out excluded areas
   available_areas: >
-    {% set excluded = excluded_areas if excluded_areas is iterable and excluded_areas is not string else [] %}
-    {{ all_areas_raw | reject('in', excluded) | list %}
+    {{ all_areas_raw | reject('in', excluded_areas if excluded_areas is iterable and excluded_areas is not string else []) | list }}
 
 trigger:
   # Power Left button (ON button) - uses ZHA event
