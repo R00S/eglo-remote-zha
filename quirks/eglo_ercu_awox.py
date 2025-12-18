@@ -57,7 +57,6 @@ class Awox99099Remote(CustomDevice):
         server_commands[0x30] = foundation.ZCLCommandDef(
             COMMAND_AWOX_COLOR,
             {"param1": t.uint8_t, "color": t.uint8_t},
-            False,
             is_manufacturer_specific=True,
         )
 
@@ -68,7 +67,6 @@ class Awox99099Remote(CustomDevice):
         server_commands[0x10] = foundation.ZCLCommandDef(
             "awox_refresh",
             {"param1": t.uint8_t, "press": t.uint8_t},
-            False,
             is_manufacturer_specific=True,
         )
 

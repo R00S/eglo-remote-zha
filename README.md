@@ -40,62 +40,111 @@ This integration can be installed through HACS (Home Assistant Community Store).
 
 ## 🌟 Key Features
 
+### Intelligent Area & Light Selection
+- **Cycle through your Home Assistant areas** with a single button
+- **Select individual lights** within each area  
+- **Visual feedback**: Lights blink to confirm selection
+- **Auto-timeout**: Returns to default area after 5 minutes of inactivity
+- **Save defaults**: Long press to save your preferred area and states
+
 ### Universal Device Control
-Control **ANY Home Assistant device** with your Eglo remote:
+Control **ANY Home Assistant light** with your Eglo remote:
 - ✅ **Zigbee** (lights, switches, plugs)
 - ✅ **WiFi** (TP-Link, Shelly, Tuya, LIFX, etc.)
 - ✅ **Thread** (Matter-over-Thread, Nanoleaf, Eve)
 - ✅ **Bluetooth** (BLE devices)
-- ✅ **433MHz RF** (via bridges)
-- ✅ **Z-Wave** devices
-- ✅ **Cloud** devices
-- ✅ **Virtual** entities (scripts, helpers, groups)
+- ✅ **Cloud** lights
 
-**Mix different protocols in the same bank!**
+**No protocol restrictions!**
 
-### 3-Bank Control
-- **66 automation triggers** (22 actions × 3 banks)
-- Switch between 3 independent device groups with buttons 1/2/3
-- Configure each bank separately via blueprint
+### Advanced Button Functions
+- **All hardware long press** actions implemented
+- **Configurable power button** - control any entity
+- **Color presets** with temperature cycling
+- **Dimming & color temp** with continuous long press
+- **Favorite recalls** for area and light defaults
 
 ### No Complex Setup Required
 - ❌ No Touchlink binding needed
 - ❌ No ZHA groups to create
-- ✅ Just select your devices in the blueprint
+- ❌ No manual bank switching
+- ✅ Just select your areas and configure exclusions
 
 ---
-├─────────────────────────────────┤
-│  [1]    [2]    [3]              │  ← **Group Selectors** (NOT YET MAPPED)
+
+## 🎮 Remote Control Layout
+
+```
+┌─────────────────────────────────┐
+│  [1]    [2]    [3]              │  ← Groups/Zones (NO EVENTS)
 ├─────────────────────────────────┤
 │  [ON]              [OFF]        │  ← Power controls
 ├─────────────────────────────────┤
-│  [Red] [Green] [Blue] [Cycle]   │  ← Color controls
+│  [🔴] [🟢] [🔵] [🔄]           │  ← Color controls
 ├─────────────────────────────────┤
-│  [Heart1]         [Heart2]      │  ← Scene recall
+│  [❤️1]         [❤️2]          │  ← Favorites
 ├─────────────────────────────────┤
 │  [Dim▲]           [Dim▼]        │  ← Brightness
 ├─────────────────────────────────┤
-│  [Warm]           [Cold]        │  ← Color temperature
+│  [Warm]           [Cold]        │  ← Color temperature  
+├─────────────────────────────────┤
+│         [🕯️Candle]             │  ← Cycle areas
 └─────────────────────────────────┘
 ```
 
-**How It Works**:
-1. **Press button 1, 2, or 3** to select which group of lights to control
-2. **Then use the control buttons** (on/off, colors, brightness, etc.) on the selected group
+### How It Works
 
-**Current Limitation**: 
-The group selector buttons (1, 2, 3) are **not yet mapped** in the quirk. This means:
-- ❌ Cannot switch between controlling different light groups
-- ❌ All commands currently operate in a single context
-- 🔄 Physical testing needed to understand what Zigbee commands these buttons send
+1. **Cycle Areas**: Press **Candle Mode** button to cycle through your Home Assistant areas
+   - Only cycles through non-excluded areas
+   - Lights in selected area blink twice to confirm
+   
+2. **Select Individual Light**: Press **Middle Color** button to cycle through lights in current area
+   - Cycles: All lights → Light 1 → Light 2 → ... → All lights
+   - Selected light blinks twice to confirm
 
-**Button Functions (Currently Mapped)**:
-- **ON/OFF**: Power control with short/long press
-- **Red/Green/Blue**: Select color (short press) or set to full saturation (long press)
-- **Cycle**: Cycle through colors (short press) or continuous cycle (long press)
-- **Heart 1/2**: Recall saved scenes
-- **Dim Up/Down**: Adjust brightness (short press step, long press to max/min)
-- **Warm/Cold**: Adjust color temperature (short press step, long press to extreme)
+3. **Control Selected Area/Light**: Use all other buttons (power, colors, dimming, etc.)
+   - Actions apply to currently selected area or light
+   
+4. **Set Defaults**:
+   - **Long press Power Left**: Save current area as default
+   - **Long press Power Right**: Save current state as default
+   - **Press Fav 1**: Recall default area state
+   - **Press Fav 2**: Recall default light state
+
+5. **Auto-Reset**: After 5 minutes of inactivity or HA restart, remote returns to default area
+
+### Detailed Button Functions
+
+**Power Left** (ON):
+- Short: Toggle configurable entity (set in blueprint)
+- Long: Save current area as default
+
+**Power Right** (OFF):
+- Short: Toggle selected area/light
+- Long: Save state as default
+
+**Color Buttons** (Top/Left/Right):
+- Short: Change to green/red/blue
+- Long: Cycle color temp within that color range
+
+**Middle Color** (Cycle):
+- Short: Cycle through lights in area
+
+**Candle Mode**:
+- Short: Cycle to next area
+- From single light: First press → whole area, Second → next area
+
+**Dimming** (Up/Down):
+- Short: Adjust by 5%
+- Long: Continuous adjustment
+
+**Color Temp** (Warm/Cold):
+- Short: Adjust by 5%
+- Long: Continuous adjustment
+
+**Favorites**:
+- Fav 1: Recall default area state
+- Fav 2: Recall default light state
 
 For the simpler Tuya variant (TS004F), see the [quirks documentation](quirks/README.md).
 

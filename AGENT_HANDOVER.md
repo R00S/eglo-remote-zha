@@ -1,10 +1,452 @@
 # Agent Handover Document - Eglo Remote ZHA Integration
 
-## Current Status: READY TO MERGE AND TEST
+## Current Status: MAJOR ARCHITECTURAL CHANGE IN PROGRESS
 
-This PR successfully transforms the repository into a HACS-installable custom integration for the AwoX ERCU_3groups_Zm (Eglo Remote 2.0).
+This PR is transitioning from a 3-bank manual workaround system to an intelligent **Area/Light Selection System**.
 
-## What Has Been Completed ✅
+## What Needs To Be Implemented 🚀
+
+### Overview of New System
+
+The new system replaces manual 3-bank switching with an intelligent area/light cycling system that:
+- Cycles through Home Assistant areas with a button press
+- Selects individual lights within areas
+- Provides visual feedback (light blinks)
+- Auto-resets after 5 minutes or on HA restart
+- Saves default areas and states
+
+**Full specification**: See `docs/AREA_LIGHT_SELECTION_SPEC.md`
+
+### Implementation Tasks
+
+#### 1. Quirk Simplification ✅ TODO
+
+**File**: `custom_components/eglo_remote_zha/eglo_ercu_awox.py`
+
+**Changes needed**:
+1. Remove all 3-bank logic (no more `_1`, `_2`, `_3` suffixes)
+2. Remove bank detection code
+3. Keep all hardware long press implementations
+4. Emit simple events (22 total, no banks):
+   - `turn_on`, `turn_off`
+   - `dim_up`, `dim_down`, `dim_up_long`, `dim_down_long`
+   - `color_red`, `color_green`, `color_blue`, `color_cycle`
+   - `color_red_long`, `color_green_long`, `color_blue_long`, `color_cycle_long`
+   - `scene_1`, `scene_2`
+   - `color_temp_up`, `color_temp_down`
+   - `color_temp_up_long`, `color_temp_down_long`
+   - `refresh`, `refresh_long`
+
+**What to remove**:
+- `Awox99099Remote3Banks` class
+- GroupID extraction logic
+- Bank mapping dictionaries
+- All references to `dst_addressing.group`
+
+**What to keep**:
+- Basic `Awox99099Remote` class
+- All cluster handlers with long press support
+- Command definitions
+- Signature matching
+
+#### 2. New Blueprint Creation ✅ TODO
+
+**File**: `blueprints/eglo_awox_area_selection.yaml`
+
+**Required inputs**:
+```yaml
+input:
+  remote:
+    name: Eglo Remote
+    selector:
+      device:
+        integration: eglo_remote_zha
+        
+  excluded_areas:
+    name: Excluded Areas
+    selector:
+      select:
+        multiple: true
+        options: []  # Auto-populate from HA areas
+        
+  default_area:
+    name: Default Area
+    selector:
+      select:
+        options: []  # Auto-populate from HA areas
+        
+  power_left_entity:
+    name: Power Left Button Entity
+    description: Entity to toggle with power left button
+    selector:
+      entity:
+```
+
+**Helper entities to create** (via blueprint or instructions):
+- `input_select.eglo_remote_[id]_current_area`
+- `input_select.eglo_remote_[id]_current_light`
+- `input_text.eglo_remote_[id]_default_area`
+- `input_datetime.eglo_remote_[id]_last_activity`
+
+**Trigger definitions**: One for each of 22 button events
+
+**Action sequences** for each button:
+- State checks
+- Area/light cycling logic
+- Visual feedback (blink sequences using `repeat` with `light.turn_on`/`turn_off`)
+- State updates
+- Timeout reset
+
+**Key automations to implement**:
+
+1. **Candle Mode Button** (area cycling):
+```yaml
+- Check if single light selected
+  - If yes: First press → select whole area
+  - If no: Cycle to next non-excluded area
+- Blink all lights in new area (on/off twice)
+- Update current_area helper
+- Reset last_activity timestamp
+```
+
+2. **Middle Color Button** (light cycling):
+```yaml
+- Get all lights in current area
+- Cycle to next light (or "all")
+- Blink selected light (on/off twice)
+- Update current_light helper
+- Reset last_activity timestamp
+```
+
+3. **Power Left Button**:
+```yaml
+Short press:
+  - Toggle power_left_entity
+
+Long press:
+  - Save current_area to default_area
+  - Show confirmation (blink once)
+```
+
+4. **Power Right Button**:
+```yaml
+Short press:
+  - Toggle current area/light
+
+Long press:
+  - Create scene with current state
+  - Save as default state
+  - Show confirmation
+```
+
+5. **Color Buttons** (Top/Left/Right):
+```yaml
+Short press:
+  - Set color to green/red/blue
+
+Long press:
+  - Cycle color temp within that color's range
+  - Use repeat loop for continuous cycling
+```
+
+6. **Dimming/Color Temp Buttons**:
+```yaml
+Short press:
+  - Adjust by 5%
+
+Long press:
+  - Continuous adjustment
+  - Use repeat loop with brightness_step_pct
+```
+
+7. **Favorite Buttons**:
+```yaml
+Fav 1:
+  - Activate default_area_state scene
+
+Fav 2:
+  - Activate default_light_state scene
+```
+
+8. **Timeout Automation** (separate automation):
+```yaml
+trigger:
+  - platform: template
+    value_template: >
+      {{ (now() - states('input_datetime.eglo_remote_[id]_last_activity') | as_datetime).total_seconds() > 300 }}
+
+action:
+  - Set current_area to default_area
+  - Set current_light to "all"
+  - Optional: Blink lights in default area
+```
+
+#### 3. Documentation Updates ✅ TODO
+
+**Files to update**:
+
+1. `README.md`: ✅ DONE
+   - Updated key features section
+   - Updated remote control layout
+   - Added detailed button functions
+
+2. `docs/TERMS_OF_REFERENCE.md`: ✅ DONE
+   - Updated project goals
+
+3. `AGENT_HANDOVER.md`: 🔄 IN PROGRESS (this file)
+
+**Files to create**:
+
+1. `docs/AREA_LIGHT_SELECTION_SPEC.md`: ✅ DONE
+   - Complete technical specification
+
+2. `docs/AREA_LIGHT_SELECTION_USER_GUIDE.md`: ✅ TODO
+   - User-friendly setup guide
+   - Step-by-step configuration
+   - Troubleshooting section
+   - Visual diagrams
+
+**Files to archive** (move to `docs/archive/`):
+- `3BANK_WORKAROUND_SOLUTION.md`
+- `3BANK_INVESTIGATION_RESULTS.md`
+- `3BANK_FINAL_SOLUTION.md`
+- `DEEP_DEBUG_BANK_BUTTONS.md`
+- `DEBUGGING_3BANKS.md`
+
+#### 4. Remove Old 3-Bank Files ✅ TODO
+
+**Files to delete**:
+- `custom_components/eglo_remote_zha/eglo_ercu_awox_3banks.py`
+- `blueprints/eglo_awox_3banks.yaml`
+- `blueprints/eglo_awox_manual_bank.yaml`
+
+**Files to modify**:
+- `custom_components/eglo_remote_zha/__init__.py`
+  - Remove import of `eglo_ercu_awox_3banks`
+  - Keep only `eglo_ercu_awox` import
+
+#### 5. Testing Checklist ✅ TODO
+
+**Unit Tests**:
+- [ ] Quirk emits correct 22 events
+- [ ] No bank suffixes in event names
+- [ ] Long press events fire correctly
+
+**Integration Tests**:
+- [ ] Area cycling works with exclusions
+- [ ] Light cycling within area
+- [ ] Visual feedback (blinks) work
+- [ ] Timeout resets to default
+- [ ] HA restart resets to default
+- [ ] Default area save/recall
+- [ ] Default state save/recall
+
+**User Acceptance Tests**:
+- [ ] Physical buttons trigger correct actions
+- [ ] Candle mode cycles areas correctly
+- [ ] Middle color cycles lights correctly
+- [ ] Long press behaviors work
+- [ ] Continuous dimming/temp work
+- [ ] Favorites recall states correctly
+
+## Implementation Order
+
+1. **Phase 1: Quirk Simplification**
+   - Modify `eglo_ercu_awox.py`
+   - Remove 3-bank quirk
+   - Test event emission
+
+2. **Phase 2: Blueprint Development**
+   - Create area selection blueprint
+   - Implement helper entities
+   - Implement button automations
+   - Test locally
+
+3. **Phase 3: Documentation**
+   - Create user guide
+   - Archive old docs
+   - Update README references
+
+4. **Phase 4: Testing & Validation**
+   - Run all tests
+   - Fix issues
+   - Get user feedback
+
+5. **Phase 5: Cleanup**
+   - Delete obsolete files
+   - Final PR review
+   - Merge
+
+## Technical Implementation Details
+
+### Area Discovery
+
+Blueprint should discover areas dynamically:
+
+```yaml
+variables:
+  all_areas: "{{ states.light | map(attribute='entity_id') | map('area_name') | unique | list }}"
+  selectable_areas: "{{ all_areas | reject('in', excluded_areas) | list }}"
+```
+
+### Light Discovery Within Area
+
+```yaml
+variables:
+  current_area_lights: >
+    {{ states.light
+       | selectattr('entity_id', 'in', area_entities(current_area))
+       | map(attribute='entity_id')
+       | list }}
+```
+
+### Visual Feedback Implementation
+
+```yaml
+- repeat:
+    count: 2
+    sequence:
+      - service: light.turn_on
+        target:
+          entity_id: "{{ target_lights }}"
+      - delay:
+          milliseconds: 200
+      - service: light.turn_off
+        target:
+          entity_id: "{{ target_lights }}"
+      - delay:
+          milliseconds: 200
+```
+
+### Timeout Implementation
+
+Use a separate automation that checks `input_datetime.last_activity`:
+
+```yaml
+trigger:
+  - platform: time_pattern
+    minutes: "/1"  # Check every minute
+    
+condition:
+  - condition: template
+    value_template: >
+      {{ (now() - states('input_datetime.eglo_remote_current_last_activity') 
+          | as_datetime).total_seconds() > 300 }}
+
+action:
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.eglo_remote_current_area
+    data:
+      option: "{{ states('input_text.eglo_remote_default_area') }}"
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.eglo_remote_current_light
+    data:
+      option: "all"
+```
+
+## File Structure After Implementation
+
+```
+eglo-remote-zha/
+├── custom_components/
+│   └── eglo_remote_zha/
+│       ├── __init__.py              # Import simplified quirk only
+│       ├── config_flow.py           # UI-based setup flow
+│       ├── manifest.json            # Integration metadata
+│       ├── strings.json             # UI text
+│       ├── eglo_ercu_awox.py        # ⭐ Simplified quirk (no banks)
+│       └── eglo_ercu_3groups.py     # Tuya TS004F quirk
+├── blueprints/
+│   ├── eglo_awox_basic.yaml         # Basic blueprint (deprecated)
+│   └── eglo_awox_area_selection.yaml # ⭐ NEW: Area selection blueprint
+├── docs/
+│   ├── AREA_LIGHT_SELECTION_SPEC.md    # ⭐ NEW: Technical spec
+│   ├── AREA_LIGHT_SELECTION_USER_GUIDE.md # ⭐ NEW: User guide
+│   ├── HACS_INSTALLATION.md
+│   ├── TERMS_OF_REFERENCE.md       # Updated
+│   └── archive/                    # ⭐ NEW: Old 3-bank docs
+│       ├── 3BANK_WORKAROUND_SOLUTION.md
+│       ├── 3BANK_INVESTIGATION_RESULTS.md
+│       ├── 3BANK_FINAL_SOLUTION.md
+│       ├── DEEP_DEBUG_BANK_BUTTONS.md
+│       └── DEBUGGING_3BANKS.md
+├── hacs.json                       # HACS metadata
+├── README.md                       # ✅ Updated
+├── AGENT_HANDOVER.md              # 🔄 This file (updated)
+└── LICENSE
+
+⭐ = New or significantly modified
+✅ = Already updated
+🔄 = In progress
+```
+
+## Breaking Changes
+
+### For Existing Users
+
+**What stops working**:
+- All automations using `*_1`, `*_2`, `*_3` triggers
+- 3-bank blueprint automations
+- Manual bank switching
+
+**Migration path**:
+1. Remove old automations
+2. Update integration
+3. Import new blueprint
+4. Configure areas and exclusions
+5. Set default area
+6. Test all buttons
+
+**User communication**:
+- Add prominent notice in README
+- Create migration guide
+- Version bump to 1.0.0 (breaking change)
+
+## Success Criteria
+
+Implementation is complete when:
+
+1. ✅ Quirk emits 22 simple events (no banks)
+2. ✅ Blueprint handles area/light selection
+3. ✅ Visual feedback works correctly
+4. ✅ Timeout and reset behavior works
+5. ✅ Default area/state save/recall works
+6. ✅ All documentation updated
+7. ✅ Old files archived or deleted
+8. ✅ Tests pass
+9. ✅ Physical device testing successful
+
+## Contact Points
+
+- **Repository**: https://github.com/R00S/eglo-remote-zha
+- **Issue Tracker**: For bug reports
+- **Discussions**: For questions
+
+## Next Agent Instructions
+
+You are receiving this handover to implement the area/light selection system. Your tasks:
+
+1. **Read the spec**: `docs/AREA_LIGHT_SELECTION_SPEC.md`
+2. **Simplify the quirk**: Remove 3-bank logic from `eglo_ercu_awox.py`
+3. **Create the blueprint**: Implement `eglo_awox_area_selection.yaml`
+4. **Write user guide**: Create `AREA_LIGHT_SELECTION_USER_GUIDE.md`
+5. **Archive old docs**: Move 3-bank docs to `docs/archive/`
+6. **Delete obsolete files**: Remove 3-bank quirk and blueprints
+7. **Test thoroughly**: Validate all functionality
+8. **Prepare for merge**: Final review and documentation
+
+**Priority**: Focus on getting the core area/light cycling working first, then add advanced features like long press behaviors and favorites.
+
+**Timeline**: This is a major feature - budget 2-3 hours for complete implementation and testing.
+
+---
+
+**Status**: Ready for Next Agent Implementation
+**Version**: 1.0.0-beta (breaking change)
+**Date**: 2025-12-18
+
 
 ### 1. HACS Integration Structure
 - ✅ Created proper `custom_components/eglo_remote_zha/` package structure

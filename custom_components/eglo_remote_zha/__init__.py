@@ -23,12 +23,14 @@ _LOGGER = logging.getLogger(__name__)
 # and automatically registered with zigpy's DEVICE_REGISTRY
 try:
     from .eglo_ercu_3groups import EgloERCU3Groups
+    # Use basic Awox quirk - provides standard triggers without bank suffixes
+    # 3-bank functionality is achieved through multiple automations (see 3BANK_WORKAROUND_SOLUTION.md)
     from .eglo_ercu_awox import Awox99099Remote
-    from .eglo_ercu_awox_3banks import Awox99099Remote3Banks
+    # from .eglo_ercu_awox_3banks import Awox99099Remote3Banks
     
     _LOGGER.debug(
         "Eglo Remote ZHA quirks imported successfully: "
-        "Awox99099Remote, Awox99099Remote3Banks, EgloERCU3Groups"
+        "Awox99099Remote (basic), EgloERCU3Groups"
     )
 except ImportError as err:
     _LOGGER.error(
@@ -42,7 +44,7 @@ except Exception as err:
     )
     raise
 
-__all__ = ["EgloERCU3Groups", "Awox99099Remote", "Awox99099Remote3Banks"]
+__all__ = ["EgloERCU3Groups", "Awox99099Remote"]
 
 DOMAIN = "eglo_remote_zha"
 

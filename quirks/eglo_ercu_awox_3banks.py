@@ -84,13 +84,28 @@ class Awox99099Remote3Banks(CustomDevice):
             dst_addressing=None,
         ):
             """Handle cluster request and extract group ID."""
+            import logging
+            _LOGGER = logging.getLogger(__name__)
+            
+            # Debug: Log everything we can see
+            _LOGGER.warning(
+                "AwoxOnOffCluster: cmd_id=%s, dst_addressing=%s, "
+                "has_group=%s, group=%s",
+                hdr.command_id,
+                dst_addressing,
+                hasattr(dst_addressing, 'group') if dst_addressing else False,
+                getattr(dst_addressing, 'group', None) if dst_addressing else None
+            )
+            
             # Extract group ID from destination addressing
             group_id = None
             if dst_addressing and hasattr(dst_addressing, 'group'):
                 group_id = dst_addressing.group
+                _LOGGER.warning("AwoxOnOffCluster: Extracted group_id=%s", group_id)
                 
             # Map group ID to bank number
             bank = GROUP_TO_BANK.get(group_id, 1) if group_id else 1
+            _LOGGER.warning("AwoxOnOffCluster: Mapped to bank=%s", bank)
             
             # Store bank for potential use
             self._current_bank = bank
@@ -110,13 +125,29 @@ class Awox99099Remote3Banks(CustomDevice):
             dst_addressing=None,
         ):
             """Handle cluster request and extract group ID."""
+            import logging
+            _LOGGER = logging.getLogger(__name__)
+            
+            # Debug: Log everything we can see
+            _LOGGER.warning(
+                "AwoxScenesCluster: cmd_id=%s, dst_addressing=%s, "
+                "has_group=%s, group=%s, args=%s",
+                hdr.command_id,
+                dst_addressing,
+                hasattr(dst_addressing, 'group') if dst_addressing else False,
+                getattr(dst_addressing, 'group', None) if dst_addressing else None,
+                args
+            )
+            
             # Extract group ID from destination addressing
             group_id = None
             if dst_addressing and hasattr(dst_addressing, 'group'):
                 group_id = dst_addressing.group
+                _LOGGER.warning("AwoxScenesCluster: Extracted group_id=%s", group_id)
                 
             # Map group ID to bank number
             bank = GROUP_TO_BANK.get(group_id, 1) if group_id else 1
+            _LOGGER.warning("AwoxScenesCluster: Mapped to bank=%s", bank)
             
             # Store bank for potential use
             self._current_bank = bank
@@ -132,7 +163,6 @@ class Awox99099Remote3Banks(CustomDevice):
         server_commands[0x30] = foundation.ZCLCommandDef(
             COMMAND_AWOX_COLOR,
             {"param1": t.uint8_t, "color": t.uint8_t},
-            False,
             is_manufacturer_specific=True,
         )
 
@@ -175,7 +205,6 @@ class Awox99099Remote3Banks(CustomDevice):
         server_commands[0x10] = foundation.ZCLCommandDef(
             "awox_refresh",
             {"param1": t.uint8_t, "press": t.uint8_t},
-            False,
             is_manufacturer_specific=True,
         )
 
@@ -187,13 +216,29 @@ class Awox99099Remote3Banks(CustomDevice):
             dst_addressing=None,
         ):
             """Handle cluster request and extract group ID."""
+            import logging
+            _LOGGER = logging.getLogger(__name__)
+            
+            # Debug: Log everything we can see
+            _LOGGER.warning(
+                "AwoxLevelControlCluster: cmd_id=%s, dst_addressing=%s, "
+                "has_group=%s, group=%s, args=%s",
+                hdr.command_id,
+                dst_addressing,
+                hasattr(dst_addressing, 'group') if dst_addressing else False,
+                getattr(dst_addressing, 'group', None) if dst_addressing else None,
+                args
+            )
+            
             # Extract group ID from destination addressing
             group_id = None
             if dst_addressing and hasattr(dst_addressing, 'group'):
                 group_id = dst_addressing.group
+                _LOGGER.warning("AwoxLevelControlCluster: Extracted group_id=%s", group_id)
                 
             # Map group ID to bank number
             bank = GROUP_TO_BANK.get(group_id, 1) if group_id else 1
+            _LOGGER.warning("AwoxLevelControlCluster: Mapped to bank=%s", bank)
             
             # Store bank for potential use
             self._current_bank = bank
