@@ -367,7 +367,7 @@ action:
                 sequence:
                   - service: input_select.select_option
                     target:
-                      entity_id: !input current_light_helper
+                      entity_id: "{{ current_light_helper }}"
                     data:
                       option: "all"
                   # Blink all lights in area
@@ -398,12 +398,12 @@ action:
                     {{ available_areas[next_index] if available_areas | length > 0 else default_area }}
               - service: input_select.select_option
                 target:
-                  entity_id: !input current_area_helper
+                  entity_id: "{{ current_area_helper }}"
                 data:
                   option: "{{ next_area }}"
               - service: input_select.select_option
                 target:
-                  entity_id: !input current_light_helper
+                  entity_id: "{{ current_light_helper }}"
                 data:
                   option: "all"
               # Blink all lights in new area
@@ -444,7 +444,7 @@ action:
                 {{ light_options[next_index] }}
           - service: input_select.select_option
             target:
-              entity_id: !input current_light_helper
+              entity_id: "{{ current_light_helper }}"
             data:
               option: "{{ next_light }}"
           # Blink selected light(s)
@@ -721,13 +721,13 @@ action:
           # Reset to default area
           - service: input_select.select_option
             target:
-              entity_id: !input current_area_helper
+              entity_id: "{{ current_area_helper }}"
             data:
               option: "{{ default_area }}"
           # Reset to all lights
           - service: input_select.select_option
             target:
-              entity_id: !input current_light_helper
+              entity_id: "{{ current_light_helper }}"
             data:
               option: "all"
           # Optional: Brief blink to indicate reset
