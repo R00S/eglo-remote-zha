@@ -139,15 +139,18 @@ Test each button:
 
 | Button | Short Press | Long Press |
 |--------|-------------|------------|
-| **Power Left** | Toggle custom entity | Save default area |
-| **Power Right** | Toggle area/light | Save default state |
+| **Power Left** | Toggle custom entity | - |
+| **Power Right** | Toggle area/light | - |
 | **Colour Top** | Green color | Cycle green temps |
 | **Colour Left** | Red color | Cycle red temps |
 | **Colour Right** | Blue color | Cycle blue temps |
-| **Colour Middle** | Cycle lights | (unused) |
+| **Colour Middle** | Cycle lights | Save current state |
 | **Candle Mode** | Cycle areas | (unused) |
 | **Dimming** | Adjust 5% | Continuous |
 | **White Tone** | Adjust temp | Jump to extreme |
+| **Favourites** | Recall states | - |
+
+**Note**: Default area is configured in blueprint setup, not via button press.
 | **Favourites** | Recall states | - |
 
 ## Troubleshooting
@@ -210,13 +213,13 @@ A: That's fine! You can still use light selection to control individual lights. 
 
 A: Yes, but each remote needs its own set of helper entities with unique names.
 
-**Q: How do I save my default area?**
+**Q: How do I set my default area?**
 
-A: Long press the Power Left button when in your preferred area. Lights will blink to confirm.
+A: Configure the "Default Area" input in the blueprint settings. This is the area the remote will return to after timeout or restart.
 
 **Q: How do I save a favorite state?**
 
-A: Long press the Power Right button when lights are in desired state. Recall with Fav 1 or Fav 2 buttons.
+A: Long press the Colour Middle button when lights are in the desired state. The lights will blink 3 times to confirm. Recall with Fav 1 or Fav 2 buttons.
 
 ## Getting Help
 
