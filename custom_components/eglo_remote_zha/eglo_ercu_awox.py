@@ -61,6 +61,7 @@ COMMAND_ENHANCED_MOVE_HUE = "enhanced_move_hue"
 COMMAND_MOVE_TO_COLOR_TEMP = "move_to_color_temp"
 COMMAND_MOVE_TO_HUE_SATURATION = "move_to_hue_and_saturation"
 COMMAND_RECALL = "recall"
+COMMAND_STORE = "store"
 
 
 class Awox99099Remote(CustomDevice):
@@ -170,8 +171,7 @@ class Awox99099Remote(CustomDevice):
     }
 
     device_automation_triggers = {
-        # Power buttons (left=ON, right=OFF) - use constants from zhaquirks.const
-        (SHORT_PRESS, TURN_ON): {COMMAND: COMMAND_ON, CLUSTER_ID: 6, ENDPOINT_ID: 1},
+        # Power buttons (right=OFF) - left power button doesn't produce COMMAND_ON
         (SHORT_PRESS, TURN_OFF): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
         
         # Color buttons (Colour top=green, left=red, right=blue, middle=cycle)
@@ -264,15 +264,27 @@ class Awox99099Remote(CustomDevice):
             PARAMS: {"level": 1},
         },
         
-        # Favourite buttons (scene recall)
+        # Favourite buttons (scene recall/store)
         (SHORT_PRESS, "scene_1"): {
             COMMAND: COMMAND_RECALL,
             CLUSTER_ID: 5,
             ENDPOINT_ID: 1,
             PARAMS: {"scene_id": 1},
         },
+        (LONG_PRESS, "scene_1_long"): {
+            COMMAND: COMMAND_STORE,
+            CLUSTER_ID: 5,
+            ENDPOINT_ID: 1,
+            PARAMS: {"scene_id": 1},
+        },
         (SHORT_PRESS, "scene_2"): {
             COMMAND: COMMAND_RECALL,
+            CLUSTER_ID: 5,
+            ENDPOINT_ID: 1,
+            PARAMS: {"scene_id": 2},
+        },
+        (LONG_PRESS, "scene_2_long"): {
+            COMMAND: COMMAND_STORE,
             CLUSTER_ID: 5,
             ENDPOINT_ID: 1,
             PARAMS: {"scene_id": 2},
