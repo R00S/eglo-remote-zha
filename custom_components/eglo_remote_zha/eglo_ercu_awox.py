@@ -1,5 +1,8 @@
 """Device handler for AwoX 99099 Remote (Eglo Remote 2.0)
 
+Last Modified: 2025-12-18 22:33:00 CET
+Changes: Added OnOff cluster filter to block ON commands at cluster level
+
 This quirk provides simple, single-bank control for the AwoX ERCU_3groups_Zm remote.
 It emits 22 button events with hardware long-press support:
 - Power: turn_on, turn_off
@@ -87,6 +90,25 @@ class Awox99099Remote(CustomDevice):
             is_manufacturer_specific=True,
         )
 
+    class AwoxOnOffCluster(CustomCluster, OnOff):
+        """Awox Remote Custom OnOff Cluster - filters out ON command from color buttons"""
+
+        def handle_cluster_general_request(
+            self,
+            hdr: foundation.ZCLHeader,
+            args: list,
+            *,
+            dst_addressing=None
+        ):
+            """Filter out ON command to prevent duplicate events from color buttons."""
+            # Ignore ON commands (command_id 0x01) - they come from color buttons
+            # and should not trigger separate ON events
+            if hdr.command_id == 0x01:  # ON command
+                return
+            # Let OFF commands (0x00) through normally
+            return super().handle_cluster_general_request(hdr, args, dst_addressing=dst_addressing)
+
+
     signature = {
         # <SimpleDescriptor endpoint=1 profile=260 device_type=2048
         # device_version=1
@@ -149,7 +171,7 @@ class Awox99099Remote(CustomDevice):
                     Identify.cluster_id,
                     Groups.cluster_id,
                     Scenes.cluster_id,
-                    OnOff.cluster_id,
+                    AwoxOnOffCluster,  # Custom cluster to filter ON commands
                     AwoxLevelControlCluster,
                     AwoxColorCluster,
                     LightLink.cluster_id,
