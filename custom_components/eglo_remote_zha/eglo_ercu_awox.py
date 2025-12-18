@@ -1,8 +1,8 @@
 """Device handler for AwoX 99099 Remote (Eglo Remote 2.0)
 
 This quirk provides simple, single-bank control for the AwoX ERCU_3groups_Zm remote.
-It emits 24 button events with hardware long-press support:
-- Power: turn_on, turn_off (short + long versions)
+It emits 22 button events with hardware long-press support:
+- Power: turn_on, turn_off
 - Dimming: dim_up, dim_down (short + long versions)
 - Colors: color_red, color_green, color_blue, color_cycle (short + long versions)
 - Scenes: scene_1, scene_2 (Favourite buttons)
@@ -11,6 +11,9 @@ It emits 24 button events with hardware long-press support:
 
 Area/light selection is handled by blueprints, not by the quirk.
 No bank suffixes (_1, _2, _3) are used in this simplified version.
+
+Note: Power button long press is detected through ZHA event platform in blueprints,
+not as separate automation triggers.
 """
 
 from zigpy.profiles import zha
@@ -167,11 +170,9 @@ class Awox99099Remote(CustomDevice):
     }
 
     device_automation_triggers = {
-        # Power buttons (left=ON, right=OFF) - both support long press
+        # Power buttons (left=ON, right=OFF)
         (SHORT_PRESS, TURN_ON): {COMMAND: COMMAND_ON, CLUSTER_ID: 6, ENDPOINT_ID: 1},
-        (LONG_PRESS, TURN_ON): {COMMAND: COMMAND_ON, CLUSTER_ID: 6, ENDPOINT_ID: 1},
         (SHORT_PRESS, TURN_OFF): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
-        (LONG_PRESS, TURN_OFF): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
         
         # Color buttons (Colour top=green, left=red, right=blue, middle=cycle)
         (SHORT_PRESS, "color_green"): {

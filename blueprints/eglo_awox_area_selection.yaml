@@ -126,42 +126,21 @@ variables:
     {% endif %}
 
 trigger:
-  # Power Left button (ON button) - short and long press
+  # Power Left button (ON button)
   - platform: device
     device_id: !input remote
     domain: zha
     type: action
     subtype: turn_on
-    id: power_left_short
+    id: power_left
     
-  # Power Left button - long press (uses same subtype but ZHA distinguishes via press type)
-  # Note: ZHA may emit this differently - if not working, may need custom detection
-  - platform: event
-    event_type: zha_event
-    event_data:
-      device_id: !input remote
-      command: "on"
-      args:
-        press_type: "long"
-    id: power_left_long
-    
-  # Power Right button (OFF button) - short and long press
+  # Power Right button (OFF button)
   - platform: device
     device_id: !input remote
     domain: zha
     type: action
     subtype: turn_off
-    id: power_right_short
-    
-  # Power Right button - long press
-  - platform: event
-    event_type: zha_event
-    event_data:
-      device_id: !input remote
-      command: "off"
-      args:
-        press_type: "long"
-    id: power_right_long
+    id: power_right
     
   # Colour Top button (Green)
   - platform: device
@@ -439,10 +418,11 @@ action:
                 - delay:
                     milliseconds: 200
       
-      # POWER LEFT SHORT - Toggle custom entity
+      # POWER LEFT - Toggle custom entity
+      # Note: Long press detection would need to be implemented via timing logic
       - conditions:
           - condition: trigger
-            id: power_left_short
+            id: power_left
           - condition: template
             value_template: "{{ power_left_entity != '' }}"
         sequence:
@@ -450,37 +430,11 @@ action:
             target:
               entity_id: "{{ power_left_entity }}"
       
-      # POWER LEFT LONG - Save default area
+      # POWER RIGHT - Toggle current area/light
+      # Note: Long press detection would need to be implemented via timing logic
       - conditions:
           - condition: trigger
-            id: power_left_long
-        sequence:
-          - service: input_text.set_value
-            target:
-              entity_id: !input default_area_helper
-            data:
-              value: "{{ current_area }}"
-          # Confirmation blink
-          - repeat:
-              count: 1
-              sequence:
-                - service: light.turn_on
-                  target:
-                    entity_id: "{{ current_area_lights }}"
-                  data:
-                    brightness_pct: 100
-                - delay:
-                    milliseconds: 300
-                - service: light.turn_off
-                  target:
-                    entity_id: "{{ current_area_lights }}"
-                - delay:
-                    milliseconds: 300
-      
-      # POWER RIGHT SHORT - Toggle current area/light
-      - conditions:
-          - condition: trigger
-            id: power_right_short
+            id: power_right
         sequence:
           - variables:
               target_entities: >
@@ -488,37 +442,6 @@ action:
           - service: light.toggle
             target:
               entity_id: "{{ target_entities }}"
-      
-      # POWER RIGHT LONG - Save default state
-      - conditions:
-          - condition: trigger
-            id: power_right_long
-        sequence:
-          - variables:
-              target_entities: >
-                {{ [current_light] if current_light != 'all' else current_area_lights }}
-              scene_name: >
-                {{ 'eglo_remote_default_' + ('light' if current_light != 'all' else 'area') + '_state' }}
-          - service: scene.create
-            data:
-              scene_id: "{{ scene_name }}"
-              snapshot_entities: "{{ target_entities }}"
-          # Confirmation blink
-          - repeat:
-              count: 1
-              sequence:
-                - service: light.turn_on
-                  target:
-                    entity_id: "{{ target_entities }}"
-                  data:
-                    brightness_pct: 100
-                - delay:
-                    milliseconds: 300
-                - service: light.turn_off
-                  target:
-                    entity_id: "{{ target_entities }}"
-                - delay:
-                    milliseconds: 300
       
       # COLOR BUTTONS SHORT - Set color
       - conditions:
