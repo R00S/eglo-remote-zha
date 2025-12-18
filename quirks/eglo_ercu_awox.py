@@ -45,6 +45,7 @@ COMMAND_ENHANCED_MOVE_HUE = "enhanced_move_hue"
 COMMAND_MOVE_TO_COLOR_TEMP = "move_to_color_temp"
 COMMAND_MOVE_TO_HUE_SATURATION = "move_to_hue_and_saturation"
 COMMAND_RECALL = "recall"
+COMMAND_STORE = "store"
 
 
 class Awox99099Remote(CustomDevice):
@@ -245,8 +246,20 @@ class Awox99099Remote(CustomDevice):
             ENDPOINT_ID: 1,
             PARAMS: {"scene_id": 1},
         },
+        (LONG_PRESS, "heart_1"): {
+            COMMAND: COMMAND_STORE,
+            CLUSTER_ID: 5,
+            ENDPOINT_ID: 1,
+            PARAMS: {"scene_id": 1},
+        },
         (SHORT_PRESS, "heart_2"): {
             COMMAND: COMMAND_RECALL,
+            CLUSTER_ID: 5,
+            ENDPOINT_ID: 1,
+            PARAMS: {"scene_id": 2},
+        },
+        (LONG_PRESS, "heart_2"): {
+            COMMAND: COMMAND_STORE,
             CLUSTER_ID: 5,
             ENDPOINT_ID: 1,
             PARAMS: {"scene_id": 2},
