@@ -1,7 +1,7 @@
 """Device handler for AwoX 99099 Remote (Eglo Remote 2.0)
 
-Last Modified: 2025-12-18 22:33:00 CET
-Changes: Added OnOff cluster filter to block ON commands at cluster level
+Last Modified: 2025-12-18 22:37:00 CET
+Changes: Blocks ON commands from color/dim/temp buttons at cluster level (power ON still supported if needed)
 
 This quirk provides simple, single-bank control for the AwoX ERCU_3groups_Zm remote.
 It emits 22 button events with hardware long-press support:
@@ -91,7 +91,7 @@ class Awox99099Remote(CustomDevice):
         )
 
     class AwoxOnOffCluster(CustomCluster, OnOff):
-        """Awox Remote Custom OnOff Cluster - filters out ON command from color buttons"""
+        """Awox Remote Custom OnOff Cluster - blocks unwanted ON commands from color/dim/temp buttons"""
 
         def handle_cluster_general_request(
             self,
@@ -100,12 +100,20 @@ class Awox99099Remote(CustomDevice):
             *,
             dst_addressing=None
         ):
-            """Filter out ON command to prevent duplicate events from color buttons."""
-            # Ignore ON commands (command_id 0x01) - they come from color buttons
-            # and should not trigger separate ON events
-            if hdr.command_id == 0x01:  # ON command
-                return
-            # Let OFF commands (0x00) through normally
+            """Block ON commands to prevent duplicate events from color/dim/temp buttons.
+            
+            The hardware sends ON commands from multiple buttons:
+            - Color buttons (green, red, blue, middle) send ON + color command
+            - Dim buttons send ON + dim command  
+            - Color temp buttons send ON + temp command
+            
+            We block ALL ON commands here. If there's a physical power ON button,
+            add it back via device_automation_triggers.
+            """
+            # Block ON commands (command_id 0x01)
+            if hdr.command_id == 0x01:
+                return None
+            # Let OFF commands (0x00) and all other commands through
             return super().handle_cluster_general_request(hdr, args, dst_addressing=dst_addressing)
 
 
