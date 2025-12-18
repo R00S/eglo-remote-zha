@@ -23,7 +23,9 @@ blueprint:
       description: Select the Eglo Remote device
       selector:
         device:
-          integration: eglo_remote_zha
+          integration: zha
+          manufacturer: AwoX
+          model: ERCU_3groups_Zm
           
     excluded_areas:
       name: Excluded Areas
@@ -112,7 +114,7 @@ trigger:
   # Power Left button (ON button) - short and long press
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: turn_on
     id: power_left_short
@@ -131,7 +133,7 @@ trigger:
   # Power Right button (OFF button) - short and long press
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: turn_off
     id: power_right_short
@@ -149,14 +151,14 @@ trigger:
   # Colour Top button (Green)
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_green
     id: color_green_short
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_green_long
     id: color_green_long
@@ -164,14 +166,14 @@ trigger:
   # Colour Left button (Red)
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_red
     id: color_red_short
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_red_long
     id: color_red_long
@@ -179,14 +181,14 @@ trigger:
   # Colour Right button (Blue)
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_blue
     id: color_blue_short
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_blue_long
     id: color_blue_long
@@ -194,14 +196,14 @@ trigger:
   # Colour Middle button (Color cycle - used for light selection)
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_cycle
     id: color_cycle_short
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_cycle_long
     id: color_cycle_long
@@ -209,14 +211,14 @@ trigger:
   # Candle mode button (used for area cycling)
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: refresh
     id: candle_mode
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: refresh_long
     id: candle_mode_long
@@ -224,28 +226,28 @@ trigger:
   # Dimming buttons (Brightness up/down)
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: dim_up
     id: dim_up_short
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: dim_up_long
     id: dim_up_long
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: dim_down
     id: dim_down_short
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: dim_down_long
     id: dim_down_long
@@ -253,28 +255,28 @@ trigger:
   # White tone selection buttons (Color temperature warm/cold)
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_temp_up
     id: color_temp_up_short
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_temp_up_long
     id: color_temp_up_long
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_temp_down
     id: color_temp_down_short
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: color_temp_down_long
     id: color_temp_down_long
@@ -282,14 +284,14 @@ trigger:
   # Favourites buttons (Scene recall)
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: scene_1
     id: fav_1
     
   - platform: device
     device_id: !input remote
-    domain: eglo_remote_zha
+    domain: zha
     type: action
     subtype: scene_2
     id: fav_2
