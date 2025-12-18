@@ -1,4 +1,12 @@
-Not ready to use yet
+# ⚠️ INTEGRATION STATUS: USELESS - NOT FUNCTIONAL ⚠️
+
+**DO NOT USE - THIS VERSION IS BROKEN AND NON-FUNCTIONAL**
+
+This branch contains a experimental area/light selection system that **does not work correctly**. Button presses generate random light events with no predictable pattern. The Store-based state system has fundamental issues.
+
+**Use the stable `main` branch instead** - it provides working 3-bank functionality.
+
+---
 
 # Eglo Remote ZHA
 
