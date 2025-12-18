@@ -170,9 +170,9 @@ class Awox99099Remote(CustomDevice):
     }
 
     device_automation_triggers = {
-        # Power buttons (left=ON, right=OFF)
-        (SHORT_PRESS, TURN_ON): {COMMAND: COMMAND_ON, CLUSTER_ID: 6, ENDPOINT_ID: 1},
-        (SHORT_PRESS, TURN_OFF): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
+        # Power buttons (left=ON, right=OFF) - use string literals for subtypes
+        (SHORT_PRESS, "turn_on"): {COMMAND: COMMAND_ON, CLUSTER_ID: 6, ENDPOINT_ID: 1},
+        (SHORT_PRESS, "turn_off"): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
         
         # Color buttons (Colour top=green, left=red, right=blue, middle=cycle)
         (SHORT_PRESS, "color_green"): {
