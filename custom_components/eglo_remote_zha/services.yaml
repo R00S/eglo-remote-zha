@@ -29,6 +29,8 @@ set_state:
 get_state:
   name: Get State
   description: Retrieve a state value for a remote device
+  response:
+    optional: false
   fields:
     device_id:
       name: Device ID
