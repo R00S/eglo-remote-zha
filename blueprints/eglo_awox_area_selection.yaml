@@ -87,7 +87,7 @@ variables:
   
   # Get device's area as default
   default_area: >
-    {{ device_attr(remote_device, 'area_id') | area_name if device_attr(remote_device, 'area_id') else '' }}
+    {{ area_name(device_attr(remote_device, 'area_id')) if device_attr(remote_device, 'area_id') else '' }}
   
   # Get current selections
   current_area: "{{ states(current_area_helper) }}"
@@ -96,7 +96,7 @@ variables:
   
   # Discover all areas with lights
   all_areas_raw: >
-    {{ areas() | select('area_name') | list }}
+    {{ areas() | list }}
   
   # Filter out excluded areas
   available_areas: >
