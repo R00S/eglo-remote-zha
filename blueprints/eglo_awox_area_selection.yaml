@@ -292,62 +292,39 @@ trigger:
     id: timeout_check
 
 action:
-  # Auto-create helper entities if they don't exist
-  - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ states(current_area_helper) in ['unknown', 'unavailable'] }}"
-        sequence:
-          - service: input_select.create
-            data:
-              name: "Eglo Remote {{ device_name | title }} Current Area"
-              entity_id: "{{ current_area_helper.split('.')[1] }}"
-              icon: "mdi:floor-plan"
-              options:
-                - "all"
-          - service: input_select.create
-            data:
-              name: "Eglo Remote {{ device_name | title }} Current Light"
-              entity_id: "{{ current_light_helper.split('.')[1] }}"
-              icon: "mdi:lightbulb"
-              options:
-                - "all"
-          - service: input_text.create
-            data:
-              name: "Eglo Remote {{ device_name | title }} Default Area"
-              entity_id: "{{ default_area_helper.split('.')[1] }}"
-              icon: "mdi:home-floor-0"
-              initial: "{{ default_area }}"
-          - service: input_datetime.create
-            data:
-              name: "Eglo Remote {{ device_name | title }} Last Activity"
-              entity_id: "{{ last_activity_helper.split('.')[1] }}"
-              icon: "mdi:clock-outline"
-              has_date: true
-              has_time: true
-          - service: system_log.write
-            data:
-              message: "Eglo Remote: Auto-created helper entities for {{ device_name }}"
-              level: info
-          # Initialize helpers with default values
-          - service: input_select.select_option
-            target:
-              entity_id: "{{ current_area_helper }}"
-            data:
-              option: "{{ default_area if default_area else 'all' }}"
-          - service: input_select.select_option
-            target:
-              entity_id: "{{ current_light_helper }}"
-            data:
-              option: "all"
-          - service: input_text.set_value
-            target:
-              entity_id: "{{ default_area_helper }}"
-            data:
-              value: "{{ default_area if default_area else '' }}"
-          - delay:
-              seconds: 1
-    default: []
+  # Read current state from Store
+  - service: eglo_remote_zha.get_state
+    data:
+      device_id: "{{ device_id }}"
+      key: "current_area"
+      default: "{{ default_area }}"
+    response_variable: current_area_data
+  
+  - service: eglo_remote_zha.get_state
+    data:
+      device_id: "{{ device_id }}"
+      key: "current_light"
+      default: "all"
+    response_variable: current_light_data
+  
+  - service: eglo_remote_zha.get_state
+    data:
+      device_id: "{{ device_id }}"
+      key: "last_activity"
+      default: "{{ now().isoformat() }}"
+    response_variable: last_activity_data
+  
+  - variables:
+      current_area: "{{ current_area_data.value }}"
+      current_light: "{{ current_light_data.value }}"
+      last_activity: "{{ last_activity_data.value }}"
+      # Get lights in current area
+      current_area_lights: >
+        {% if current_area and current_area != 'all' %}
+          {{ area_entities(current_area) | select('match', '^light\.') | list }}
+        {% else %}
+          []
+        {% endif %}
   
   # Update last activity timestamp for all actions (skip for timeout_check)
   - choose:
@@ -355,11 +332,11 @@ action:
           - condition: template
             value_template: "{{ trigger.id != 'timeout_check' }}"
         sequence:
-          - service: input_datetime.set_datetime
-            target:
-              entity_id: "{{ last_activity_helper }}"
+          - service: eglo_remote_zha.set_state
             data:
-              datetime: "{{ now().isoformat() }}"
+              device_id: "{{ device_id }}"
+              key: "last_activity"
+              value: "{{ now().isoformat() }}"
     default: []
   
   # Handle different button actions
@@ -375,11 +352,11 @@ action:
                   - condition: template
                     value_template: "{{ current_light != 'all' }}"
                 sequence:
-                  - service: input_select.select_option
-                    target:
-                      entity_id: "{{ current_light_helper }}"
+                  - service: eglo_remote_zha.set_state
                     data:
-                      option: "all"
+                      device_id: "{{ device_id }}"
+                      key: "current_light"
+                      value: "all"
                   # Blink all lights in area
                   - repeat:
                       count: 2
@@ -406,16 +383,16 @@ action:
                     {{ (current_index + 1) % (available_areas | length) }}
                   next_area: >
                     {{ available_areas[next_index] if available_areas | length > 0 else default_area }}
-              - service: input_select.select_option
-                target:
-                  entity_id: "{{ current_area_helper }}"
+              - service: eglo_remote_zha.set_state
                 data:
-                  option: "{{ next_area }}"
-              - service: input_select.select_option
-                target:
-                  entity_id: "{{ current_light_helper }}"
+                  device_id: "{{ device_id }}"
+                  key: "current_area"
+                  value: "{{ next_area }}"
+              - service: eglo_remote_zha.set_state
                 data:
-                  option: "all"
+                  device_id: "{{ device_id }}"
+                  key: "current_light"
+                  value: "all"
               # Blink all lights in new area
               - variables:
                   next_area_lights: >
@@ -452,11 +429,11 @@ action:
                 {{ (current_index + 1) % (light_options | length) }}
               next_light: >
                 {{ light_options[next_index] }}
-          - service: input_select.select_option
-            target:
-              entity_id: "{{ current_light_helper }}"
+          - service: eglo_remote_zha.set_state
             data:
-              option: "{{ next_light }}"
+              device_id: "{{ device_id }}"
+              key: "current_light"
+              value: "{{ next_light }}"
           # Blink selected light(s)
           - variables:
               blink_targets: >
@@ -718,7 +695,7 @@ action:
           # Only if timeout has been reached
           - condition: template
             value_template: >
-              {% set last_time = states(last_activity_helper) | as_datetime %}
+              {% set last_time = last_activity | as_datetime %}
               {% if last_time != None %}
                 {{ (now() - last_time).total_seconds() > (timeout_minutes * 60) }}
               {% else %}
@@ -729,17 +706,17 @@ action:
             value_template: "{{ current_area != default_area }}"
         sequence:
           # Reset to default area
-          - service: input_select.select_option
-            target:
-              entity_id: "{{ current_area_helper }}"
+          - service: eglo_remote_zha.set_state
             data:
-              option: "{{ default_area }}"
+              device_id: "{{ device_id }}"
+              key: "current_area"
+              value: "{{ default_area }}"
           # Reset to all lights
-          - service: input_select.select_option
-            target:
-              entity_id: "{{ current_light_helper }}"
+          - service: eglo_remote_zha.set_state
             data:
-              option: "all"
+              device_id: "{{ device_id }}"
+              key: "current_light"
+              value: "all"
           # Optional: Brief blink to indicate reset
           - variables:
               default_area_lights: >
