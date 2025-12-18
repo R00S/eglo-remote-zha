@@ -160,7 +160,7 @@ The implementation is complete. Physical device testing is recommended to verify
 - See `docs/MIGRATION_FROM_3BANK.md` for detailed steps
 - Users must create helper entities
 - Users must import new blueprints
-- Version bump to 1.0.0 (breaking change)
+- Version bump to 0.1.0 (breaking change)
 
 ## File Structure After Implementation
 
@@ -220,7 +220,7 @@ Implementation is complete when:
 ## Next Steps
 
 1. **Merge to main branch** when ready
-2. **Tag release as v1.0.0** (breaking change)
+2. **Tag release as v0.1.0** (breaking change)
 3. **Update HACS** metadata
 4. **Announce to users** with migration guide
 5. **Monitor for issues** in first week
@@ -244,7 +244,7 @@ Implementation is complete when:
 ---
 
 **Implementation Status**: ✅ COMPLETE
-**Version**: 1.0.0-beta (breaking change)
+**Version**: 0.1.0-beta (breaking change)
 **Date**: 2025-12-18
 **Ready for**: User Testing & Release
 
@@ -644,7 +644,7 @@ eglo-remote-zha/
 **User communication**:
 - Add prominent notice in README
 - Create migration guide
-- Version bump to 1.0.0 (breaking change)
+- Version bump to 0.1.0 (breaking change)
 
 ## Success Criteria
 
@@ -686,7 +686,7 @@ You are receiving this handover to implement the area/light selection system. Yo
 ---
 
 **Status**: Ready for Next Agent Implementation
-**Version**: 1.0.0-beta (breaking change)
+**Version**: 0.1.0-beta (breaking change)
 **Date**: 2025-12-18
 
 

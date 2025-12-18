@@ -2,7 +2,7 @@
 
 ## Overview
 
-Version 1.0.0 introduces a **major architectural change** that replaces the manual 3-bank workaround system with an intelligent **Area/Light Selection System**.
+Version 0.1.0 introduces a **major architectural change** that replaces the manual 3-bank workaround system with an intelligent **Area/Light Selection System**.
 
 **Breaking Changes:**
 - All 3-bank quirks and blueprints have been removed
@@ -30,7 +30,7 @@ Before upgrading:
 
 ### Step 2: Update the Integration
 
-1. Update via HACS or manually to version 1.0.0+
+1. Update via HACS or manually to version 0.1.0+
 2. Restart Home Assistant
 3. Verify the integration loads without errors in the logs
 
@@ -246,5 +246,5 @@ If you absolutely need to rollback:
 
 ---
 
-**Version:** 1.0.0  
+**Version:** 0.1.0  
 **Date:** 2025-12-18

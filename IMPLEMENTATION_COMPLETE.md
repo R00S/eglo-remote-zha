@@ -95,7 +95,7 @@ Physical buttons correctly documented as:
 
 ## Breaking Changes
 
-This is a **major version (1.0.0)** release with breaking changes:
+This is a **major version (0.1.0)** release with breaking changes:
 
 **Removed**:
 - 3-bank quirk and all `*_1`, `*_2`, `*_3` events
@@ -131,7 +131,7 @@ This is a **major version (1.0.0)** release with breaking changes:
 ## Next Steps
 
 1. **Final Review** - Review all changes one more time
-2. **Tag Release** - Create v1.0.0 tag
+2. **Tag Release** - Create v0.1.0 tag
 3. **Update HACS** - Ensure HACS metadata is correct
 4. **User Announcement** - Announce with migration guide
 5. **Monitor Issues** - Watch for user feedback in first week
@@ -158,7 +158,7 @@ If you're picking this up:
 1. **Implementation is DONE** - All code changes complete
 2. **Testing needed** - Physical device validation pending
 3. **Migration guide ready** - Users have clear upgrade path
-4. **Breaking change** - This is v1.0.0, not backward compatible
+4. **Breaking change** - This is v0.1.0, not backward compatible
 5. **Single blueprint** - Simplified from original 2-blueprint design
 
 The system is ready for release pending physical device testing.
@@ -166,6 +166,6 @@ The system is ready for release pending physical device testing.
 ---
 
 **Status**: ✅ Implementation Complete  
-**Version**: 1.0.0 (breaking change)  
+**Version**: 0.1.0 (breaking change)  
 **Date**: 2025-12-18  
 **Ready for**: Release & User Testing
