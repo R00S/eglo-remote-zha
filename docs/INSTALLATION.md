@@ -57,22 +57,23 @@ This guide explains how to install and configure the AwoX ERCU_3groups_Zm remote
 2. Click "Import Blueprint"
 3. Enter the blueprint URL:
    ```
-   https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_3banks.yaml
+   https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_area_selection.yaml
    ```
 4. Click "Preview" then "Import"
 
-#### Create Automation for Bank 1
+#### Create Area Selection Automation
 
 1. Go to Settings → Automations & Scenes
 2. Click "Create Automation" → "Use Blueprint"
-3. Select "Eglo/AwoX Remote 3-Bank Control (ZHA)"
+3. Select "Eglo Remote - Area & Light Selection"
 4. Configure:
    - **Remote**: Select your AwoX remote
-   - **Bank Number**: Select "Bank 1"
-   - **Target Devices**: Select ANY lights, switches, or devices you want to control
-   - **Enable features**: Check the controls you want to use
-   - **Adjust settings**: Brightness step, color temp step, etc.
-5. Give it a name: "Eglo Remote - Bank 1"
+   - **Default Area**: Select your primary area (e.g., "Living Room")
+   - **Excluded Areas**: Optional - areas to skip when cycling
+   - **Power Left Entity**: Optional - entity to toggle with power left button
+   - **Helper Entities**: Select the 4 helper entities you created
+   - **Timeout**: Set inactivity timeout (default 5 minutes)
+5. Give it a name: "Eglo Remote - Area Control"
 6. Save
 
 #### Create Automations for Banks 2 and 3

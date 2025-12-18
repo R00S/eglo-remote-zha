@@ -1,0 +1,55 @@
+# Service definitions for Eglo Remote ZHA integration
+
+set_state:
+  name: Set State
+  description: Store a state value for a remote device
+  fields:
+    device_id:
+      name: Device ID
+      description: The device ID of the Eglo remote
+      required: true
+      example: "abc123def456"
+      selector:
+        text:
+    key:
+      name: Key
+      description: The state key to set
+      required: true
+      example: "current_area"
+      selector:
+        text:
+    value:
+      name: Value
+      description: The value to store
+      required: true
+      example: "Living Room"
+      selector:
+        text:
+
+get_state:
+  name: Get State
+  description: Retrieve a state value for a remote device
+  response:
+    optional: false
+  fields:
+    device_id:
+      name: Device ID
+      description: The device ID of the Eglo remote
+      required: true
+      example: "abc123def456"
+      selector:
+        text:
+    key:
+      name: Key
+      description: The state key to get (leave empty to get all state)
+      required: false
+      example: "current_area"
+      selector:
+        text:
+    default:
+      name: Default
+      description: Default value if key doesn't exist
+      required: false
+      example: "all"
+      selector:
+        text:

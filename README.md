@@ -1,4 +1,12 @@
-Not ready to use yet
+# ⚠️ INTEGRATION STATUS: USELESS - NOT FUNCTIONAL ⚠️
+
+**DO NOT USE - THIS VERSION IS BROKEN AND NON-FUNCTIONAL**
+
+This branch contains a experimental area/light selection system that **does not work correctly**. Button presses generate random light events with no predictable pattern. The Store-based state system has fundamental issues.
+
+**Use the stable `main` branch instead** - it provides working 3-bank functionality.
+
+---
 
 # Eglo Remote ZHA
 
@@ -203,16 +211,22 @@ If you have the Tuya variant instead:
 
 ### Installing Blueprints
 
-1. **Navigate to Home Assistant Blueprints**:
-   - Configuration → Blueprints → Import Blueprint
+1. **Assign Remote to Area** (important!):
+   - Settings → Devices & Services → Find your remote
+   - Assign it to an area (this becomes the default area)
 
-2. **Import from URL** or **copy the YAML**:
-   - Basic 3-group control: [`blueprints/eglo_3group_basic.yaml`](blueprints/eglo_3group_basic.yaml)
+2. **Import the Area Selection Blueprint**:
+   ```
+   https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_area_selection.yaml
+   ```
+   
+   Or for basic 3-group control: [`blueprints/eglo_3group_basic.yaml`](blueprints/eglo_3group_basic.yaml)
 
 3. **Create automation from blueprint**:
    - Select your Eglo remote device
-   - Configure your light groups
-   - Adjust brightness step if needed
+   - Set excluded areas if desired
+   - Configure timeout settings
+   - **No manual helper creation needed!** - Auto-created on first use
 
 ## 📚 Documentation
 

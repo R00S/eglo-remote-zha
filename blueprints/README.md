@@ -1,12 +1,54 @@
 # Eglo Remote Blueprints
 
-> ⚠️ **UNDER DEVELOPMENT**: These blueprints are being tested and validated. Use with caution.
-
 This directory contains Home Assistant blueprints for Eglo remote controls using ZHA.
 
 ## Available Blueprints
 
-### 1. Basic 3-Group Control (`eglo_3group_basic.yaml`)
+### 🎯 Recommended: Area & Light Selection (`eglo_awox_area_selection.yaml`)
+
+**Import URL:**
+```
+https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_area_selection.yaml
+```
+
+**Features:**
+- 🚀 **Auto-creates helper entities** - no manual setup required!
+- 📍 **Uses device area as default** - assign remote to area, done!
+- 🔄 Intelligent area cycling with Candle Mode button
+- 💡 Individual light selection with Colour Middle button
+- ✨ Visual feedback via light blinks
+- 💾 Save/recall default states
+- ⏱️ Configurable timeout with auto-reset
+- 🌐 Control ANY Home Assistant light entities
+- ✅ Only ONE automation needed per remote
+- 👥 **Multi-remote support** - each remote gets unique helpers
+
+**Supported Devices:**
+- AwoX ERCU_3groups_Zm (99099 Remote)
+
+**Button Functions:**
+- **Power Left**: Toggle configured entity
+- **Power Right**: Toggle selected area/light
+- **Colour Middle (short)**: Cycle through lights in area
+- **Colour Middle (long)**: Save current state as default
+- **Candle Mode**: Cycle through areas
+- **Colour Top/Left/Right**: Set colors or adjust color temperature
+- **Dimming**: Adjust brightness
+- **White Tone**: Adjust color temperature
+- **Favourites**: Recall saved states
+
+**Easy Setup:**
+1. Assign remote to an area in Home Assistant
+2. Import blueprint
+3. Create automation from blueprint
+4. Press any button - helpers auto-created!
+
+**Multiple Remotes:**
+Each remote automatically gets its own set of helpers based on device name:
+- Remote "Living Room" → `eglo_remote_living_room_*`
+- Remote "Bedroom" → `eglo_remote_bedroom_*`
+
+### 2. Basic 3-Group Control (`eglo_3group_basic.yaml`)
 
 **Features:**
 - Controls 3 separate light groups (one per remote button group)
@@ -34,17 +76,17 @@ Top buttons turn on/brighten, bottom buttons turn off/dim.
 
 ## Installing Blueprints
 
-### Method 1: Blueprint Exchange (Future)
-When available on the Home Assistant Blueprint Exchange, you'll be able to import with one click.
-
-### Method 2: Manual Import
+### Method 1: Direct Import (Recommended)
 
 1. Navigate to **Configuration** → **Blueprints** in Home Assistant
 2. Click **Import Blueprint**
-3. Paste the GitHub raw URL or copy the YAML content
-4. Click **Import**
+3. Paste this URL for Area Selection blueprint:
+   ```
+   https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_area_selection.yaml
+   ```
+4. Click **Preview** then **Import**
 
-### Method 3: File System
+### Method 2: File System
 
 1. Copy the blueprint YAML file to:
    ```
