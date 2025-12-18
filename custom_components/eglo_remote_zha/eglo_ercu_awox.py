@@ -40,6 +40,8 @@ from zhaquirks.const import (
     COMMAND_STEP_COLOR_TEMP,
     COMMAND_STEP_ON_OFF,
     DEVICE_TYPE,
+    DIM_DOWN,
+    DIM_UP,
     ENDPOINT_ID,
     ENDPOINTS,
     INPUT_CLUSTERS,
@@ -49,6 +51,8 @@ from zhaquirks.const import (
     PARAMS,
     PROFILE_ID,
     SHORT_PRESS,
+    TURN_OFF,
+    TURN_ON,
 )
 
 COMMAND_AWOX_COLOR = "awox_color"
@@ -166,9 +170,9 @@ class Awox99099Remote(CustomDevice):
     }
 
     device_automation_triggers = {
-        # Power buttons (left=ON, right=OFF) - use string literals for subtypes
-        (SHORT_PRESS, "turn_on"): {COMMAND: COMMAND_ON, CLUSTER_ID: 6, ENDPOINT_ID: 1},
-        (SHORT_PRESS, "turn_off"): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
+        # Power buttons (left=ON, right=OFF) - use constants from zhaquirks.const
+        (SHORT_PRESS, TURN_ON): {COMMAND: COMMAND_ON, CLUSTER_ID: 6, ENDPOINT_ID: 1},
+        (SHORT_PRESS, TURN_OFF): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
         
         # Color buttons (Colour top=green, left=red, right=blue, middle=cycle)
         (SHORT_PRESS, "color_green"): {
@@ -234,8 +238,8 @@ class Awox99099Remote(CustomDevice):
             PARAMS: {"press": 2},
         },
         
-        # Dimming buttons - use string literals for subtypes
-        (SHORT_PRESS, "dim_up"): {
+        # Dimming buttons - SHORT_PRESS uses DIM_UP/DIM_DOWN constants, LONG_PRESS uses custom strings
+        (SHORT_PRESS, DIM_UP): {
             COMMAND: COMMAND_STEP_ON_OFF,
             CLUSTER_ID: 8,
             ENDPOINT_ID: 1,
@@ -247,7 +251,7 @@ class Awox99099Remote(CustomDevice):
             ENDPOINT_ID: 1,
             PARAMS: {"level": 254},
         },
-        (SHORT_PRESS, "dim_down"): {
+        (SHORT_PRESS, DIM_DOWN): {
             COMMAND: COMMAND_STEP_ON_OFF,
             CLUSTER_ID: 8,
             ENDPOINT_ID: 1,
