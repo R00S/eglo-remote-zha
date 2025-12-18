@@ -183,9 +183,9 @@ Test each button:
 ### Issue: Timeout not resetting
 
 **Solution**:
-1. Check that  is enabled
+1. Check that the main automation is enabled
 2. Verify last_activity timestamp is updating
-3. Check timeout duration setting
+3. Check timeout duration setting (must be > 0)
 4. Review automation traces
 
 ## FAQ

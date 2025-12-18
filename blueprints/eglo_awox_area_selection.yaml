@@ -559,8 +559,13 @@ action:
                 color_red_long: [350, 454]    # Warmer temps for red
                 color_blue_long: [153, 250]   # Coolest temps for blue
               temp_range: "{{ temp_ranges[trigger.id] }}"
+              # Get current temp safely
               current_temp: >
-                {{ state_attr(target_entities[0], 'color_temp') | int(250) }}
+                {% if target_entities | length > 0 %}
+                  {{ state_attr(target_entities[0], 'color_temp') | int(250) }}
+                {% else %}
+                  250
+                {% endif %}
               # Cycle through range in steps
               step_size: 30
               new_temp: >
@@ -571,6 +576,8 @@ action:
                 {% else %}
                   {{ current_temp + step_size }}
                 {% endif %}
+          - condition: template
+            value_template: "{{ target_entities | length > 0 }}"
           - service: light.turn_on
             target:
               entity_id: "{{ target_entities }}"
@@ -623,10 +630,16 @@ action:
               target_entities: >
                 {{ [current_light] if current_light != 'all' else current_area_lights }}
               current_temp: >
-                {{ state_attr(target_entities[0], 'color_temp') | int(250) }}
+                {% if target_entities | length > 0 %}
+                  {{ state_attr(target_entities[0], 'color_temp') | int(250) }}
+                {% else %}
+                  250
+                {% endif %}
               step: "{{ -20 if trigger.id == 'color_temp_up_short' else 20 }}"
               new_temp: >
                 {{ [153, [454, current_temp + step] | min] | max }}
+          - condition: template
+            value_template: "{{ target_entities | length > 0 }}"
           - service: light.turn_on
             target:
               entity_id: "{{ target_entities }}"
@@ -651,23 +664,31 @@ action:
               color_temp: "{{ target_temp }}"
               transition: 1
       
-      # FAV 1 - Recall default area state
+      # FAV 1 - Recall default area state (if exists)
       - conditions:
           - condition: trigger
             id: fav_1
         sequence:
-          - service: scene.turn_on
-            target:
-              entity_id: scene.eglo_remote_default_area_state
+          - if:
+              - condition: template
+                value_template: "{{ states('scene.eglo_remote_default_area_state') != 'unknown' }}"
+            then:
+              - service: scene.turn_on
+                target:
+                  entity_id: scene.eglo_remote_default_area_state
       
-      # FAV 2 - Recall default light state
+      # FAV 2 - Recall default light state (if exists)
       - conditions:
           - condition: trigger
             id: fav_2
         sequence:
-          - service: scene.turn_on
-            target:
-              entity_id: scene.eglo_remote_default_light_state
+          - if:
+              - condition: template
+                value_template: "{{ states('scene.eglo_remote_default_light_state') != 'unknown' }}"
+            then:
+              - service: scene.turn_on
+                target:
+                  entity_id: scene.eglo_remote_default_light_state
       
       # TIMEOUT CHECK - Reset to default area after inactivity
       - conditions:
@@ -682,10 +703,7 @@ action:
           # Only if timeout has been reached
           - condition: template
             value_template: >
-              {% set last_time = strptime(last_activity, '%Y-%m-%dT%H:%M:%S.%f%z', None) %}
-              {% if last_time == None %}
-                {% set last_time = strptime(last_activity, '%Y-%m-%d %H:%M:%S%z', None) %}
-              {% endif %}
+              {% set last_time = states(last_activity_helper) | as_datetime %}
               {% if last_time != None %}
                 {{ (now() - last_time).total_seconds() > (timeout_minutes * 60) }}
               {% else %}
