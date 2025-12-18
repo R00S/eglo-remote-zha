@@ -15,7 +15,7 @@ import logging
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.helpers.storage import Store
 
 _LOGGER = logging.getLogger(__name__)
@@ -132,7 +132,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return {"value": value}
     
     hass.services.async_register(DOMAIN, SERVICE_SET_STATE, handle_set_state)
-    hass.services.async_register(DOMAIN, SERVICE_GET_STATE, handle_get_state)
+    hass.services.async_register(
+        DOMAIN, 
+        SERVICE_GET_STATE, 
+        handle_get_state,
+        supports_response=SupportsResponse.ONLY
+    )
     
     _LOGGER.info("Registered services: %s.set_state, %s.get_state", DOMAIN, DOMAIN)
     
