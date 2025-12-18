@@ -9,6 +9,7 @@ blueprint:
     - Visual feedback via light blinks
     - Save/recall default areas and states
     - Configurable area exclusions
+    - Integrated timeout (optional) - auto-resets to default area after inactivity
     
     Required helper entities (create these first):
     - input_select.eglo_remote_current_area
@@ -16,6 +17,7 @@ blueprint:
     - input_text.eglo_remote_default_area
     - input_datetime.eglo_remote_last_activity
     
+    Only ONE automation needed per remote!
   domain: automation
   input:
     remote:
@@ -75,6 +77,17 @@ blueprint:
       selector:
         entity:
           domain: input_datetime
+          
+    timeout_minutes:
+      name: Timeout (minutes)
+      description: Minutes of inactivity before resetting to default area (0 to disable)
+      default: 5
+      selector:
+        number:
+          min: 0
+          max: 60
+          step: 1
+          unit_of_measurement: minutes
 
 mode: queued
 max: 10
@@ -88,10 +101,12 @@ variables:
   current_light_helper: !input current_light_helper
   default_area_helper: !input default_area_helper
   last_activity_helper: !input last_activity_helper
+  timeout_minutes: !input timeout_minutes
   
   # Get current selections
   current_area: "{{ states(current_area_helper) }}"
   current_light: "{{ states(current_light_helper) }}"
+  last_activity: "{{ states(last_activity_helper) }}"
   
   # Discover all areas with lights
   all_areas_raw: >
@@ -295,6 +310,11 @@ trigger:
     type: action
     subtype: scene_2
     id: fav_2
+  
+  # Timeout trigger - check every minute for inactivity
+  - platform: time_pattern
+    minutes: "/1"
+    id: timeout_check
 
 action:
   # Update last activity timestamp for all actions
@@ -648,3 +668,60 @@ action:
           - service: scene.turn_on
             target:
               entity_id: scene.eglo_remote_default_light_state
+      
+      # TIMEOUT CHECK - Reset to default area after inactivity
+      - conditions:
+          - condition: trigger
+            id: timeout_check
+          # Only if timeout is enabled (> 0)
+          - condition: template
+            value_template: "{{ timeout_minutes > 0 }}"
+          # Only if last activity is valid
+          - condition: template
+            value_template: "{{ last_activity not in ['unknown', 'unavailable', ''] }}"
+          # Only if timeout has been reached
+          - condition: template
+            value_template: >
+              {% set last_time = strptime(last_activity, '%Y-%m-%dT%H:%M:%S.%f%z', None) %}
+              {% if last_time == None %}
+                {% set last_time = strptime(last_activity, '%Y-%m-%d %H:%M:%S%z', None) %}
+              {% endif %}
+              {% if last_time != None %}
+                {{ (now() - last_time).total_seconds() > (timeout_minutes * 60) }}
+              {% else %}
+                false
+              {% endif %}
+          # Only if we're not already at default area
+          - condition: template
+            value_template: "{{ current_area != default_area }}"
+        sequence:
+          # Reset to default area
+          - service: input_select.select_option
+            target:
+              entity_id: !input current_area_helper
+            data:
+              option: "{{ default_area }}"
+          # Reset to all lights
+          - service: input_select.select_option
+            target:
+              entity_id: !input current_light_helper
+            data:
+              option: "all"
+          # Optional: Brief blink to indicate reset
+          - variables:
+              default_area_lights: >
+                {{ area_entities(default_area) | select('match', '^light\.') | list }}
+          - if:
+              - condition: template
+                value_template: "{{ default_area_lights | length > 0 }}"
+            then:
+              - service: light.turn_on
+                target:
+                  entity_id: "{{ default_area_lights }}"
+                data:
+                  brightness_pct: 50
+              - delay:
+                  milliseconds: 200
+              - service: light.turn_off
+                target:
+                  entity_id: "{{ default_area_lights }}"

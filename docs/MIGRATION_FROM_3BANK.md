@@ -109,18 +109,12 @@ Entity ID: `input_datetime.eglo_remote_last_activity`
    - **Current Light Helper**: Select `input_select.eglo_remote_current_light`
    - **Default Area Helper**: Select `input_text.eglo_remote_default_area`
    - **Last Activity Helper**: Select `input_datetime.eglo_remote_last_activity`
+   - **Timeout (minutes)**: Set to 5 (or 0 to disable timeout)
 5. Save the automation
 
-### Step 7: Configure Timeout (Optional)
+**Note**: The timeout is now integrated into the main blueprint - no separate automation needed!
 
-1. Import the timeout blueprint:
-   - URL: `https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_timeout.yaml`
-2. Create automation from blueprint
-3. Configure with the same helper entities
-4. Set timeout duration (default: 5 minutes)
-5. Save the automation
-
-### Step 8: Test Your Setup
+### Step 7: Test Your Setup
 
 Test each button:
 1. **Candle Mode** - Should cycle through areas (lights blink)
@@ -130,6 +124,7 @@ Test each button:
 5. **Dimming** - Should adjust brightness
 6. **White Tone** - Should adjust color temperature
 7. **Favourites** - Should recall saved states (after configuring)
+8. Wait 5+ minutes without pressing buttons - Should reset to default area (if timeout enabled)
 
 ## Button Behavior Changes
 
@@ -188,7 +183,7 @@ Test each button:
 ### Issue: Timeout not resetting
 
 **Solution**:
-1. Check that timeout automation is enabled
+1. Check that  is enabled
 2. Verify last_activity timestamp is updating
 3. Check timeout duration setting
 4. Review automation traces
