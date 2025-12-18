@@ -12,13 +12,16 @@ https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_area_sele
 ```
 
 **Features:**
-- Intelligent area cycling with Candle Mode button
-- Individual light selection with Colour Middle button
-- Visual feedback via light blinks
-- Save/recall default states
-- Configurable timeout with auto-reset
-- Control ANY Home Assistant light entities
-- Only ONE automation needed per remote
+- 🚀 **Auto-creates helper entities** - no manual setup required!
+- 📍 **Uses device area as default** - assign remote to area, done!
+- 🔄 Intelligent area cycling with Candle Mode button
+- 💡 Individual light selection with Colour Middle button
+- ✨ Visual feedback via light blinks
+- 💾 Save/recall default states
+- ⏱️ Configurable timeout with auto-reset
+- 🌐 Control ANY Home Assistant light entities
+- ✅ Only ONE automation needed per remote
+- 👥 **Multi-remote support** - each remote gets unique helpers
 
 **Supported Devices:**
 - AwoX ERCU_3groups_Zm (99099 Remote)
@@ -34,11 +37,16 @@ https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_area_sele
 - **White Tone**: Adjust color temperature
 - **Favourites**: Recall saved states
 
-**Required Setup:**
-1. Create 4 helper entities (input_select, input_text, input_datetime)
+**Easy Setup:**
+1. Assign remote to an area in Home Assistant
 2. Import blueprint
-3. Configure default area and helpers
-4. Done!
+3. Create automation from blueprint
+4. Press any button - helpers auto-created!
+
+**Multiple Remotes:**
+Each remote automatically gets its own set of helpers based on device name:
+- Remote "Living Room" → `eglo_remote_living_room_*`
+- Remote "Bedroom" → `eglo_remote_bedroom_*`
 
 ### 2. Basic 3-Group Control (`eglo_3group_basic.yaml`)
 

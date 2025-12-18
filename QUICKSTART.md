@@ -8,30 +8,16 @@ Copy this URL and paste it in Home Assistant Blueprints → Import Blueprint:
 https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_area_selection.yaml
 ```
 
-## Step-by-Step Setup
+## Quick Setup (No Manual Helper Creation Needed!)
 
-### Step 1: Create Helper Entities
+The blueprint now **automatically creates all required helper entities** on first use!
 
-Go to **Settings** → **Devices & Services** → **Helpers** and create:
+### Step 1: Assign Remote to an Area
 
-1. **Dropdown**: `Eglo Remote Current Area`
-   - Entity ID: `input_select.eglo_remote_current_area`
-   - Icon: `mdi:floor-plan`
-   - Options: Leave empty
-
-2. **Dropdown**: `Eglo Remote Current Light`
-   - Entity ID: `input_select.eglo_remote_current_light`
-   - Icon: `mdi:lightbulb`
-   - Options: `all`
-
-3. **Text**: `Eglo Remote Default Area`
-   - Entity ID: `input_text.eglo_remote_default_area`
-   - Icon: `mdi:home-floor-0`
-
-4. **Date/Time**: `Eglo Remote Last Activity`
-   - Entity ID: `input_datetime.eglo_remote_last_activity`
-   - Icon: `mdi:clock-outline`
-   - Enable both date and time
+1. Go to **Settings** → **Devices & Services** → **Devices**
+2. Find your Eglo remote
+3. Click on it and assign it to an area (e.g., "Living Room")
+4. This area will be used as the default area
 
 ### Step 2: Import Blueprint
 
@@ -47,14 +33,18 @@ Go to **Settings** → **Devices & Services** → **Helpers** and create:
 3. Select **"Eglo Remote - Area & Light Selection"**
 4. Configure:
    - **Eglo Remote**: Select your paired remote
-   - **Default Area**: Select your primary area (e.g., Living Room)
    - **Excluded Areas**: Optional - select areas to skip
    - **Power Left Entity**: Optional - entity to toggle
-   - **Helper Entities**: Select the 4 helpers you created
    - **Timeout**: 5 minutes (default)
 5. Save with name: "Eglo Remote Control"
 
 ### Step 4: Use Your Remote!
+
+On first button press, the blueprint will automatically create:
+- `input_select.eglo_remote_<device_name>_current_area`
+- `input_select.eglo_remote_<device_name>_current_light`
+- `input_text.eglo_remote_<device_name>_default_area`
+- `input_datetime.eglo_remote_<device_name>_last_activity`
 
 **Button Functions:**
 - **Candle Mode**: Cycle through areas (lights blink to confirm)
@@ -63,6 +53,14 @@ Go to **Settings** → **Devices & Services** → **Helpers** and create:
 - **Power Right**: Toggle selected area/light
 - **Power Left**: Toggle configured entity
 - **Favourites (Fav 1/2)**: Recall saved states
+
+## Multiple Remotes
+
+Each remote gets its own set of helper entities automatically based on the device name. You can have as many remotes as you want!
+
+Example:
+- Remote "Living Room" → helpers named `eglo_remote_living_room_*`
+- Remote "Bedroom" → helpers named `eglo_remote_bedroom_*`
 
 ## Troubleshooting
 
@@ -77,9 +75,13 @@ Go to **Settings** → **Devices & Services** → **Helpers** and create:
 - Check Home Assistant logs for errors
 
 **Automation not triggering?**
-- Verify all helper entities are created
-- Check automation is enabled
-- Test in Home Assistant Developer Tools → Events
+- Verify automation is enabled
+- Press any button - helpers will be created automatically
+- Check Home Assistant logs for helper creation confirmation
+
+**Want to reset to default area?**
+- Just wait for the timeout period (default 5 minutes)
+- Or reassign the remote device to a different area
 
 ## Need Help?
 

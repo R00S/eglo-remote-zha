@@ -4,11 +4,12 @@ blueprint:
     Intelligent area and light cycling system for Eglo Remote ZHA.
     
     Features:
+    - Auto-creates helper entities on first run (no manual setup needed!)
     - Cycle through Home Assistant areas with Candle Mode button
     - Select individual lights within areas with Colour Middle button (short press)
     - Save current state with Colour Middle button (long press)
     - Visual feedback via light blinks
-    - Configure default area in blueprint setup
+    - Uses remote's area as default (configurable via device settings)
     - Configurable area exclusions
     - Integrated timeout (optional) - auto-resets to default area after inactivity
     
@@ -19,11 +20,11 @@ blueprint:
     - Colour Middle (long): Save current state as default
     - Candle Mode: Cycle through areas
     
-    Required helper entities (create these first):
-    - input_select.eglo_remote_current_area
-    - input_select.eglo_remote_current_light
-    - input_text.eglo_remote_default_area
-    - input_datetime.eglo_remote_last_activity
+    Helper entities will be created automatically:
+    - input_select.eglo_remote_<device_name>_current_area
+    - input_select.eglo_remote_<device_name>_current_light
+    - input_text.eglo_remote_<device_name>_default_area
+    - input_datetime.eglo_remote_<device_name>_last_activity
     
     Only ONE automation needed per remote!
   domain: automation
@@ -45,49 +46,12 @@ blueprint:
         area:
           multiple: true
           
-    default_area:
-      name: Default Area
-      description: |
-        Area to control by default and reset to after timeout.
-        This is the area that will be selected when the remote starts or after inactivity timeout.
-        Change this in blueprint configuration to set your preferred default area.
-      selector:
-        area: {}
-        
     power_left_entity:
       name: Power Left Button Entity
       description: Entity to toggle with Power Left short press (optional)
       default: ""
       selector:
         entity: {}
-        
-    current_area_helper:
-      name: Current Area Helper
-      description: Input select to track current area
-      selector:
-        entity:
-          domain: input_select
-          
-    current_light_helper:
-      name: Current Light Helper
-      description: Input select to track current light (or "all")
-      selector:
-        entity:
-          domain: input_select
-          
-    default_area_helper:
-      name: Default Area Helper
-      description: Input text to store default area name
-      selector:
-        entity:
-          domain: input_text
-          
-    last_activity_helper:
-      name: Last Activity Helper
-      description: Input datetime to track last button press
-      selector:
-        entity:
-          domain: input_datetime
           
     timeout_minutes:
       name: Timeout (minutes)
@@ -106,13 +70,24 @@ max: 10
 variables:
   remote_device: !input remote
   excluded_areas: !input excluded_areas
-  default_area: !input default_area
   power_left_entity: !input power_left_entity
-  current_area_helper: !input current_area_helper
-  current_light_helper: !input current_light_helper
-  default_area_helper: !input default_area_helper
-  last_activity_helper: !input last_activity_helper
   timeout_minutes: !input timeout_minutes
+  
+  # Generate helper entity IDs based on device name
+  device_name: >
+    {{ device_attr(remote_device, 'name') | slugify }}
+  current_area_helper: >
+    {{ 'input_select.eglo_remote_' ~ device_name ~ '_current_area' }}
+  current_light_helper: >
+    {{ 'input_select.eglo_remote_' ~ device_name ~ '_current_light' }}
+  default_area_helper: >
+    {{ 'input_text.eglo_remote_' ~ device_name ~ '_default_area' }}
+  last_activity_helper: >
+    {{ 'input_datetime.eglo_remote_' ~ device_name ~ '_last_activity' }}
+  
+  # Get device's area as default
+  default_area: >
+    {{ device_attr(remote_device, 'area_id') | area_name if device_attr(remote_device, 'area_id') else '' }}
   
   # Get current selections
   current_area: "{{ states(current_area_helper) }}"
@@ -307,12 +282,75 @@ trigger:
     id: timeout_check
 
 action:
-  # Update last activity timestamp for all actions
-  - service: input_datetime.set_datetime
-    target:
-      entity_id: !input last_activity_helper
-    data:
-      datetime: "{{ now().isoformat() }}"
+  # Auto-create helper entities if they don't exist
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ states(current_area_helper) in ['unknown', 'unavailable'] }}"
+        sequence:
+          - service: input_select.create
+            data:
+              name: "Eglo Remote {{ device_name | title }} Current Area"
+              entity_id: "{{ current_area_helper.split('.')[1] }}"
+              icon: "mdi:floor-plan"
+              options:
+                - "all"
+          - service: input_select.create
+            data:
+              name: "Eglo Remote {{ device_name | title }} Current Light"
+              entity_id: "{{ current_light_helper.split('.')[1] }}"
+              icon: "mdi:lightbulb"
+              options:
+                - "all"
+          - service: input_text.create
+            data:
+              name: "Eglo Remote {{ device_name | title }} Default Area"
+              entity_id: "{{ default_area_helper.split('.')[1] }}"
+              icon: "mdi:home-floor-0"
+              initial: "{{ default_area }}"
+          - service: input_datetime.create
+            data:
+              name: "Eglo Remote {{ device_name | title }} Last Activity"
+              entity_id: "{{ last_activity_helper.split('.')[1] }}"
+              icon: "mdi:clock-outline"
+              has_date: true
+              has_time: true
+          - service: system_log.write
+            data:
+              message: "Eglo Remote: Auto-created helper entities for {{ device_name }}"
+              level: info
+          # Initialize helpers with default values
+          - service: input_select.select_option
+            target:
+              entity_id: "{{ current_area_helper }}"
+            data:
+              option: "{{ default_area if default_area else 'all' }}"
+          - service: input_select.select_option
+            target:
+              entity_id: "{{ current_light_helper }}"
+            data:
+              option: "all"
+          - service: input_text.set_value
+            target:
+              entity_id: "{{ default_area_helper }}"
+            data:
+              value: "{{ default_area if default_area else '' }}"
+          - delay:
+              seconds: 1
+    default: []
+  
+  # Update last activity timestamp for all actions (skip for timeout_check)
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.id != 'timeout_check' }}"
+        sequence:
+          - service: input_datetime.set_datetime
+            target:
+              entity_id: "{{ last_activity_helper }}"
+            data:
+              datetime: "{{ now().isoformat() }}"
+    default: []
   
   # Handle different button actions
   - choose:

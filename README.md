@@ -203,8 +203,9 @@ If you have the Tuya variant instead:
 
 ### Installing Blueprints
 
-1. **Navigate to Home Assistant Blueprints**:
-   - Configuration → Blueprints → Import Blueprint
+1. **Assign Remote to Area** (important!):
+   - Settings → Devices & Services → Find your remote
+   - Assign it to an area (this becomes the default area)
 
 2. **Import the Area Selection Blueprint**:
    ```
@@ -215,9 +216,9 @@ If you have the Tuya variant instead:
 
 3. **Create automation from blueprint**:
    - Select your Eglo remote device
-   - Configure default area and helper entities
    - Set excluded areas if desired
    - Configure timeout settings
+   - **No manual helper creation needed!** - Auto-created on first use
 
 ## 📚 Documentation
 
