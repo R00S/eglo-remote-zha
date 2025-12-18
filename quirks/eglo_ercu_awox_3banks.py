@@ -336,8 +336,7 @@ class Awox99099Remote3Banks(CustomDevice):
 
     # Base trigger definitions (without group suffix)
     _base_triggers = {
-        # Power controls - ON/OFF (short press only)
-        (SHORT_PRESS, TURN_ON): {COMMAND: COMMAND_ON, CLUSTER_ID: 6},
+        # Power controls - OFF (short press only)
         (SHORT_PRESS, TURN_OFF): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6},
         
         # Color controls - Red, Green, Blue, Cycle (short + long press)

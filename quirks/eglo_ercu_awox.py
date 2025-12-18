@@ -154,7 +154,6 @@ class Awox99099Remote(CustomDevice):
     }
 
     device_automation_triggers = {
-        (SHORT_PRESS, TURN_ON): {COMMAND: COMMAND_ON, CLUSTER_ID: 6, ENDPOINT_ID: 1},
         (SHORT_PRESS, TURN_OFF): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
         (SHORT_PRESS, "green"): {
             COMMAND: COMMAND_AWOX_COLOR,
