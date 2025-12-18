@@ -112,168 +112,205 @@ variables:
     {% endif %}
 
 trigger:
-  # Power Left button (ON button)
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: turn_on
+  # Power Left button (ON button) - uses ZHA event
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "on"
     id: power_left
     
-  # Power Right button (OFF button)
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: turn_off
+  # Power Right button (OFF button) - uses ZHA event
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "off"
     id: power_right
     
-  # Colour Top button (Green)
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_green
+  # Colour Top button (Green) - uses ZHA event
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "awox_color"
+      args: [0, 85]
     id: color_green_short
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_green_long
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "move_to_hue_and_saturation"
+      params:
+        hue: 85
     id: color_green_long
     
-  # Colour Left button (Red)
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_red
+  # Colour Left button (Red) - uses ZHA event
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "awox_color"
+      args: [0, 255]
     id: color_red_short
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_red_long
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "move_to_hue_and_saturation"
+      params:
+        hue: 255
     id: color_red_long
     
-  # Colour Right button (Blue)
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_blue
+  # Colour Right button (Blue) - uses ZHA event
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "awox_color"
+      args: [0, 170]
     id: color_blue_short
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_blue_long
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "move_to_hue_and_saturation"
+      params:
+        hue: 170
     id: color_blue_long
     
-  # Colour Middle button (Color cycle - used for light selection)
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_cycle
+  # Colour Middle button (Color cycle - used for light selection) - uses ZHA event
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "enhanced_move_hue"
+      params:
+        move_mode: 1
     id: color_cycle_short
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_cycle_long
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "enhanced_move_hue"
+      params:
+        move_mode: 3
     id: color_cycle_long
     
-  # Candle mode button (used for area cycling)
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: refresh
+  # Candle mode button (used for area cycling) - uses ZHA event
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "awox_refresh"
+      params:
+        press: 1
     id: candle_mode
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: refresh_long
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "awox_refresh"
+      params:
+        press: 2
     id: candle_mode_long
     
-  # Dimming buttons (Brightness up/down)
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: dim_up
+  # Dimming buttons (Brightness up/down) - uses ZHA event
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "step_with_on_off"
+      params:
+        step_mode: 0
     id: dim_up_short
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: dim_up_long
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "move_to_level_with_on_off"
+      params:
+        level: 254
     id: dim_up_long
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: dim_down
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "step_with_on_off"
+      params:
+        step_mode: 1
     id: dim_down_short
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: dim_down_long
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "move_to_level_with_on_off"
+      params:
+        level: 1
     id: dim_down_long
     
-  # White tone selection buttons (Color temperature warm/cold)
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_temp_up
+  # White tone selection buttons (Color temperature warm/cold) - uses ZHA event
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "step_color_temp"
+      params:
+        step_mode: 1
     id: color_temp_up_short
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_temp_up_long
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "move_to_color_temp"
+      params:
+        color_temp_mireds: 454
     id: color_temp_up_long
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_temp_down
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "step_color_temp"
+      params:
+        step_mode: 3
     id: color_temp_down_short
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: color_temp_down_long
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "move_to_color_temp"
+      params:
+        color_temp_mireds: 153
     id: color_temp_down_long
     
-  # Favourites buttons (Scene recall)
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: scene_1
+  # Favourites buttons (Scene recall) - uses ZHA event
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "recall"
+      params:
+        scene_id: 1
     id: fav_1
     
-  - platform: device
-    device_id: !input remote
-    domain: zha
-    type: action
-    subtype: scene_2
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+      command: "recall"
+      params:
+        scene_id: 2
     id: fav_2
   
   # Timeout trigger - check every minute for inactivity
