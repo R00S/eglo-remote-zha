@@ -66,7 +66,7 @@ max: 10
 
 variables:
   remote_device: !input remote
-  device_id: "{{ device_id(remote_device) }}"
+  remote_device_id: "{{ device_id(remote_device) }}"
   excluded_areas: !input excluded_areas
   power_left_entity: !input power_left_entity
   timeout_minutes: !input timeout_minutes
@@ -294,21 +294,21 @@ action:
   # Read current state from Store
   - service: eglo_remote_zha.get_state
     data:
-      device_id: "{{ device_id }}"
+      device_id: "{{ remote_device_id }}"
       key: "current_area"
       default: "{{ default_area }}"
     response_variable: current_area_data
   
   - service: eglo_remote_zha.get_state
     data:
-      device_id: "{{ device_id }}"
+      device_id: "{{ remote_device_id }}"
       key: "current_light"
       default: "all"
     response_variable: current_light_data
   
   - service: eglo_remote_zha.get_state
     data:
-      device_id: "{{ device_id }}"
+      device_id: "{{ remote_device_id }}"
       key: "last_activity"
       default: "{{ now().isoformat() }}"
     response_variable: last_activity_data
@@ -333,7 +333,7 @@ action:
         sequence:
           - service: eglo_remote_zha.set_state
             data:
-              device_id: "{{ device_id }}"
+              device_id: "{{ remote_device_id }}"
               key: "last_activity"
               value: "{{ now().isoformat() }}"
     default: []
@@ -353,7 +353,7 @@ action:
                 sequence:
                   - service: eglo_remote_zha.set_state
                     data:
-                      device_id: "{{ device_id }}"
+                      device_id: "{{ remote_device_id }}"
                       key: "current_light"
                       value: "all"
                   # Blink all lights in area
@@ -384,12 +384,12 @@ action:
                     {{ available_areas[next_index] if available_areas | length > 0 else default_area }}
               - service: eglo_remote_zha.set_state
                 data:
-                  device_id: "{{ device_id }}"
+                  device_id: "{{ remote_device_id }}"
                   key: "current_area"
                   value: "{{ next_area }}"
               - service: eglo_remote_zha.set_state
                 data:
-                  device_id: "{{ device_id }}"
+                  device_id: "{{ remote_device_id }}"
                   key: "current_light"
                   value: "all"
               # Blink all lights in new area
@@ -430,7 +430,7 @@ action:
                 {{ light_options[next_index] }}
           - service: eglo_remote_zha.set_state
             data:
-              device_id: "{{ device_id }}"
+              device_id: "{{ remote_device_id }}"
               key: "current_light"
               value: "{{ next_light }}"
           # Blink selected light(s)
@@ -707,13 +707,13 @@ action:
           # Reset to default area
           - service: eglo_remote_zha.set_state
             data:
-              device_id: "{{ device_id }}"
+              device_id: "{{ remote_device_id }}"
               key: "current_area"
               value: "{{ default_area }}"
           # Reset to all lights
           - service: eglo_remote_zha.set_state
             data:
-              device_id: "{{ device_id }}"
+              device_id: "{{ remote_device_id }}"
               key: "current_light"
               value: "all"
           # Optional: Brief blink to indicate reset
