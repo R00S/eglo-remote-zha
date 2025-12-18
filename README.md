@@ -206,13 +206,18 @@ If you have the Tuya variant instead:
 1. **Navigate to Home Assistant Blueprints**:
    - Configuration → Blueprints → Import Blueprint
 
-2. **Import from URL** or **copy the YAML**:
-   - Basic 3-group control: [`blueprints/eglo_3group_basic.yaml`](blueprints/eglo_3group_basic.yaml)
+2. **Import the Area Selection Blueprint**:
+   ```
+   https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_area_selection.yaml
+   ```
+   
+   Or for basic 3-group control: [`blueprints/eglo_3group_basic.yaml`](blueprints/eglo_3group_basic.yaml)
 
 3. **Create automation from blueprint**:
    - Select your Eglo remote device
-   - Configure your light groups
-   - Adjust brightness step if needed
+   - Configure default area and helper entities
+   - Set excluded areas if desired
+   - Configure timeout settings
 
 ## 📚 Documentation
 

@@ -79,16 +79,16 @@ The blueprints are included in the repository:
 2. Click **Import Blueprint**
 3. Enter the blueprint URL:
    ```
-   https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_3banks.yaml
+   https://github.com/R00S/eglo-remote-zha/blob/main/blueprints/eglo_awox_area_selection.yaml
    ```
 4. Click **Preview**
 5. Click **Import**
 
-**Alternative**: Manually copy the blueprint file from `blueprints/eglo_awox_3banks.yaml` to your Home Assistant `config/blueprints/automation/` directory.
+**Alternative**: Manually copy the blueprint file from `blueprints/eglo_awox_area_selection.yaml` to your Home Assistant `config/blueprints/automation/` directory.
 
 ## Configuration
 
-### Using the 3-Bank Blueprint
+### Using the Area Selection Blueprint
 
 1. Go to **Settings** → **Automations & Scenes**
 2. Click **Create Automation**
