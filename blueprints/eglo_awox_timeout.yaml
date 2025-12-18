@@ -1,0 +1,128 @@
+blueprint:
+  name: Eglo Remote - Timeout & Reset
+  description: |
+    Automatic timeout for Eglo Remote area/light selection system.
+    Resets to default area after 5 minutes of inactivity.
+    
+    This automation works with the main Area Selection blueprint
+    to provide automatic reset behavior.
+    
+  domain: automation
+  input:
+    current_area_helper:
+      name: Current Area Helper
+      description: Input select to track current area
+      selector:
+        entity:
+          domain: input_select
+          
+    current_light_helper:
+      name: Current Light Helper
+      description: Input select to track current light (or "all")
+      selector:
+        entity:
+          domain: input_select
+          
+    default_area_helper:
+      name: Default Area Helper
+      description: Input text storing default area name
+      selector:
+        entity:
+          domain: input_text
+          
+    last_activity_helper:
+      name: Last Activity Helper
+      description: Input datetime tracking last button press
+      selector:
+        entity:
+          domain: input_datetime
+          
+    timeout_minutes:
+      name: Timeout (minutes)
+      description: Minutes of inactivity before resetting to default area
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          unit_of_measurement: minutes
+
+mode: single
+
+variables:
+  current_area_helper: !input current_area_helper
+  current_light_helper: !input current_light_helper
+  default_area_helper: !input default_area_helper
+  last_activity_helper: !input last_activity_helper
+  timeout_minutes: !input timeout_minutes
+  
+  default_area: "{{ states(default_area_helper) }}"
+  current_area: "{{ states(current_area_helper) }}"
+  last_activity: "{{ states(last_activity_helper) }}"
+
+trigger:
+  # Check every minute for timeout
+  - platform: time_pattern
+    minutes: "/1"
+
+condition:
+  # Only run if last activity timestamp is valid
+  - condition: template
+    value_template: "{{ last_activity not in ['unknown', 'unavailable', ''] }}"
+  
+  # Only run if timeout has been reached
+  - condition: template
+    value_template: >
+      {% set last_time = strptime(last_activity, '%Y-%m-%dT%H:%M:%S.%f%z', None) %}
+      {% if last_time == None %}
+        {% set last_time = strptime(last_activity, '%Y-%m-%d %H:%M:%S%z', None) %}
+      {% endif %}
+      {% if last_time != None %}
+        {{ (now() - last_time).total_seconds() > (timeout_minutes * 60) }}
+      {% else %}
+        false
+      {% endif %}
+  
+  # Only run if we're not already at default area
+  - condition: template
+    value_template: "{{ current_area != default_area }}"
+
+action:
+  # Reset to default area
+  - service: input_select.select_option
+    target:
+      entity_id: !input current_area_helper
+    data:
+      option: "{{ default_area }}"
+  
+  # Reset to all lights
+  - service: input_select.select_option
+    target:
+      entity_id: !input current_light_helper
+    data:
+      option: "all"
+  
+  # Optional: Blink lights in default area to indicate reset
+  - variables:
+      default_area_lights: >
+        {{ area_entities(default_area) | select('match', '^light\.') | list }}
+  - if:
+      - condition: template
+        value_template: "{{ default_area_lights | length > 0 }}"
+    then:
+      - repeat:
+          count: 1
+          sequence:
+            - service: light.turn_on
+              target:
+                entity_id: "{{ default_area_lights }}"
+              data:
+                brightness_pct: 50
+            - delay:
+                milliseconds: 200
+            - service: light.turn_off
+              target:
+                entity_id: "{{ default_area_lights }}"
+            - delay:
+                milliseconds: 200

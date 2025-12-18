@@ -1,0 +1,637 @@
+blueprint:
+  name: Eglo Remote - Area & Light Selection
+  description: |
+    Intelligent area and light cycling system for Eglo Remote ZHA.
+    
+    Features:
+    - Cycle through Home Assistant areas with Candle Mode button
+    - Select individual lights within areas with Middle Color button
+    - Visual feedback via light blinks
+    - Save/recall default areas and states
+    - Configurable area exclusions
+    
+    Required helper entities (create these first):
+    - input_select.eglo_remote_current_area
+    - input_select.eglo_remote_current_light
+    - input_text.eglo_remote_default_area
+    - input_datetime.eglo_remote_last_activity
+    
+  domain: automation
+  input:
+    remote:
+      name: Eglo Remote
+      description: Select the Eglo Remote device
+      selector:
+        device:
+          integration: eglo_remote_zha
+          
+    excluded_areas:
+      name: Excluded Areas
+      description: Areas to skip when cycling (optional)
+      default: []
+      selector:
+        area:
+          multiple: true
+          
+    default_area:
+      name: Default Area
+      description: Area to control by default and reset to after timeout
+      selector:
+        area: {}
+        
+    power_left_entity:
+      name: Power Left Button Entity
+      description: Entity to toggle with Power Left short press (optional)
+      default: ""
+      selector:
+        entity: {}
+        
+    current_area_helper:
+      name: Current Area Helper
+      description: Input select to track current area
+      selector:
+        entity:
+          domain: input_select
+          
+    current_light_helper:
+      name: Current Light Helper
+      description: Input select to track current light (or "all")
+      selector:
+        entity:
+          domain: input_select
+          
+    default_area_helper:
+      name: Default Area Helper
+      description: Input text to store default area name
+      selector:
+        entity:
+          domain: input_text
+          
+    last_activity_helper:
+      name: Last Activity Helper
+      description: Input datetime to track last button press
+      selector:
+        entity:
+          domain: input_datetime
+
+mode: queued
+max: 10
+
+variables:
+  remote_device: !input remote
+  excluded_areas: !input excluded_areas
+  default_area: !input default_area
+  power_left_entity: !input power_left_entity
+  current_area_helper: !input current_area_helper
+  current_light_helper: !input current_light_helper
+  default_area_helper: !input default_area_helper
+  last_activity_helper: !input last_activity_helper
+  
+  # Get current selections
+  current_area: "{{ states(current_area_helper) }}"
+  current_light: "{{ states(current_light_helper) }}"
+  
+  # Discover all areas with lights
+  all_areas_raw: >
+    {{ areas() | select('area_name') | list }}
+  
+  # Filter out excluded areas
+  available_areas: >
+    {% set excluded = excluded_areas if excluded_areas is iterable and excluded_areas is not string else [] %}
+    {{ all_areas_raw | reject('in', excluded) | list }}
+  
+  # Get lights in current area
+  current_area_lights: >
+    {% if current_area != 'unknown' and current_area != '' %}
+      {{ area_entities(current_area) | select('match', '^light\.') | list }}
+    {% else %}
+      []
+    {% endif %}
+
+trigger:
+  # Power buttons
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: turn_on
+    id: power_left_short
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: turn_on
+    id: power_left_long
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: turn_off
+    id: power_right_short
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: turn_off
+    id: power_right_long
+    
+  # Color buttons
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_green
+    id: color_green_short
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_green_long
+    id: color_green_long
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_red
+    id: color_red_short
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_red_long
+    id: color_red_long
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_blue
+    id: color_blue_short
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_blue_long
+    id: color_blue_long
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_cycle
+    id: color_cycle_short
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_cycle_long
+    id: color_cycle_long
+    
+  # Candle mode (refresh button - used for area cycling)
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: refresh
+    id: candle_mode
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: refresh_long
+    id: candle_mode_long
+    
+  # Dimming buttons
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: dim_up
+    id: dim_up_short
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: dim_up_long
+    id: dim_up_long
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: dim_down
+    id: dim_down_short
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: dim_down_long
+    id: dim_down_long
+    
+  # Color temperature buttons
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_temp_up
+    id: color_temp_up_short
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_temp_up_long
+    id: color_temp_up_long
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_temp_down
+    id: color_temp_down_short
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: color_temp_down_long
+    id: color_temp_down_long
+    
+  # Favourite buttons
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: scene_1
+    id: fav_1
+    
+  - platform: device
+    device_id: !input remote
+    domain: eglo_remote_zha
+    type: action
+    subtype: scene_2
+    id: fav_2
+
+action:
+  # Update last activity timestamp for all actions
+  - service: input_datetime.set_datetime
+    target:
+      entity_id: !input last_activity_helper
+    data:
+      datetime: "{{ now().isoformat() }}"
+  
+  # Handle different button actions
+  - choose:
+      # CANDLE MODE - Area cycling
+      - conditions:
+          - condition: trigger
+            id: candle_mode
+        sequence:
+          - choose:
+              # If individual light selected, first press selects whole area
+              - conditions:
+                  - condition: template
+                    value_template: "{{ current_light != 'all' }}"
+                sequence:
+                  - service: input_select.select_option
+                    target:
+                      entity_id: !input current_light_helper
+                    data:
+                      option: "all"
+                  # Blink all lights in area
+                  - repeat:
+                      count: 2
+                      sequence:
+                        - service: light.turn_on
+                          target:
+                            entity_id: "{{ current_area_lights }}"
+                          data:
+                            brightness_pct: 100
+                        - delay:
+                            milliseconds: 200
+                        - service: light.turn_off
+                          target:
+                            entity_id: "{{ current_area_lights }}"
+                        - delay:
+                            milliseconds: 200
+            default:
+              # Cycle to next area
+              - variables:
+                  current_index: >
+                    {% set idx = available_areas.index(current_area) if current_area in available_areas else -1 %}
+                    {{ idx }}
+                  next_index: >
+                    {{ (current_index + 1) % (available_areas | length) }}
+                  next_area: >
+                    {{ available_areas[next_index] if available_areas | length > 0 else default_area }}
+              - service: input_select.select_option
+                target:
+                  entity_id: !input current_area_helper
+                data:
+                  option: "{{ next_area }}"
+              - service: input_select.select_option
+                target:
+                  entity_id: !input current_light_helper
+                data:
+                  option: "all"
+              # Blink all lights in new area
+              - variables:
+                  next_area_lights: >
+                    {{ area_entities(next_area) | select('match', '^light\.') | list }}
+              - repeat:
+                  count: 2
+                  sequence:
+                    - service: light.turn_on
+                      target:
+                        entity_id: "{{ next_area_lights }}"
+                      data:
+                        brightness_pct: 100
+                    - delay:
+                        milliseconds: 200
+                    - service: light.turn_off
+                      target:
+                        entity_id: "{{ next_area_lights }}"
+                    - delay:
+                        milliseconds: 200
+      
+      # MIDDLE COLOR - Light cycling within area
+      - conditions:
+          - condition: trigger
+            id: color_cycle_short
+        sequence:
+          - variables:
+              # Build list: ["all", "light.1", "light.2", ...]
+              light_options: >
+                {{ ['all'] + current_area_lights }}
+              current_index: >
+                {% set idx = light_options.index(current_light) if current_light in light_options else 0 %}
+                {{ idx }}
+              next_index: >
+                {{ (current_index + 1) % (light_options | length) }}
+              next_light: >
+                {{ light_options[next_index] }}
+          - service: input_select.select_option
+            target:
+              entity_id: !input current_light_helper
+            data:
+              option: "{{ next_light }}"
+          # Blink selected light(s)
+          - variables:
+              blink_targets: >
+                {{ [next_light] if next_light != 'all' else current_area_lights }}
+          - repeat:
+              count: 2
+              sequence:
+                - service: light.turn_on
+                  target:
+                    entity_id: "{{ blink_targets }}"
+                  data:
+                    brightness_pct: 100
+                - delay:
+                    milliseconds: 200
+                - service: light.turn_off
+                  target:
+                    entity_id: "{{ blink_targets }}"
+                - delay:
+                    milliseconds: 200
+      
+      # POWER LEFT SHORT - Toggle custom entity
+      - conditions:
+          - condition: trigger
+            id: power_left_short
+          - condition: template
+            value_template: "{{ power_left_entity != '' }}"
+        sequence:
+          - service: homeassistant.toggle
+            target:
+              entity_id: "{{ power_left_entity }}"
+      
+      # POWER LEFT LONG - Save default area
+      - conditions:
+          - condition: trigger
+            id: power_left_long
+        sequence:
+          - service: input_text.set_value
+            target:
+              entity_id: !input default_area_helper
+            data:
+              value: "{{ current_area }}"
+          # Confirmation blink
+          - repeat:
+              count: 1
+              sequence:
+                - service: light.turn_on
+                  target:
+                    entity_id: "{{ current_area_lights }}"
+                  data:
+                    brightness_pct: 100
+                - delay:
+                    milliseconds: 300
+                - service: light.turn_off
+                  target:
+                    entity_id: "{{ current_area_lights }}"
+                - delay:
+                    milliseconds: 300
+      
+      # POWER RIGHT SHORT - Toggle current area/light
+      - conditions:
+          - condition: trigger
+            id: power_right_short
+        sequence:
+          - variables:
+              target_entities: >
+                {{ [current_light] if current_light != 'all' else current_area_lights }}
+          - service: light.toggle
+            target:
+              entity_id: "{{ target_entities }}"
+      
+      # POWER RIGHT LONG - Save default state
+      - conditions:
+          - condition: trigger
+            id: power_right_long
+        sequence:
+          - variables:
+              target_entities: >
+                {{ [current_light] if current_light != 'all' else current_area_lights }}
+              scene_name: >
+                {{ 'eglo_remote_default_' + ('light' if current_light != 'all' else 'area') + '_state' }}
+          - service: scene.create
+            data:
+              scene_id: "{{ scene_name }}"
+              snapshot_entities: "{{ target_entities }}"
+          # Confirmation blink
+          - repeat:
+              count: 1
+              sequence:
+                - service: light.turn_on
+                  target:
+                    entity_id: "{{ target_entities }}"
+                  data:
+                    brightness_pct: 100
+                - delay:
+                    milliseconds: 300
+                - service: light.turn_off
+                  target:
+                    entity_id: "{{ target_entities }}"
+                - delay:
+                    milliseconds: 300
+      
+      # COLOR BUTTONS SHORT - Set color
+      - conditions:
+          - condition: trigger
+            id:
+              - color_green_short
+              - color_red_short
+              - color_blue_short
+        sequence:
+          - variables:
+              target_entities: >
+                {{ [current_light] if current_light != 'all' else current_area_lights }}
+              color_map:
+                color_green_short: [85, 100]  # Hue, Saturation
+                color_red_short: [0, 100]
+                color_blue_short: [240, 100]
+              selected_color: "{{ color_map[trigger.id] }}"
+          - service: light.turn_on
+            target:
+              entity_id: "{{ target_entities }}"
+            data:
+              hs_color: "{{ selected_color }}"
+      
+      # COLOR BUTTONS LONG - Cycle color temp in range
+      - conditions:
+          - condition: trigger
+            id:
+              - color_green_long
+              - color_red_long
+              - color_blue_long
+        sequence:
+          - variables:
+              target_entities: >
+                {{ [current_light] if current_light != 'all' else current_area_lights }}
+              # Define color temp ranges for each color
+              temp_ranges:
+                color_green_long: [200, 300]  # Cooler temps for green
+                color_red_long: [350, 454]    # Warmer temps for red
+                color_blue_long: [153, 250]   # Coolest temps for blue
+              temp_range: "{{ temp_ranges[trigger.id] }}"
+              current_temp: >
+                {{ state_attr(target_entities[0], 'color_temp') | int(250) }}
+              # Cycle through range in steps
+              step_size: 30
+              new_temp: >
+                {% set min_temp = temp_range[0] %}
+                {% set max_temp = temp_range[1] %}
+                {% if current_temp < min_temp or current_temp >= max_temp %}
+                  {{ min_temp }}
+                {% else %}
+                  {{ current_temp + step_size }}
+                {% endif %}
+          - service: light.turn_on
+            target:
+              entity_id: "{{ target_entities }}"
+            data:
+              color_temp: "{{ new_temp }}"
+      
+      # DIMMING SHORT - Adjust by 5%
+      - conditions:
+          - condition: trigger
+            id:
+              - dim_up_short
+              - dim_down_short
+        sequence:
+          - variables:
+              target_entities: >
+                {{ [current_light] if current_light != 'all' else current_area_lights }}
+              step: "{{ 5 if trigger.id == 'dim_up_short' else -5 }}"
+          - service: light.turn_on
+            target:
+              entity_id: "{{ target_entities }}"
+            data:
+              brightness_step_pct: "{{ step }}"
+      
+      # DIMMING LONG - Continuous adjustment
+      - conditions:
+          - condition: trigger
+            id:
+              - dim_up_long
+              - dim_down_long
+        sequence:
+          - variables:
+              target_entities: >
+                {{ [current_light] if current_light != 'all' else current_area_lights }}
+              target_level: "{{ 254 if trigger.id == 'dim_up_long' else 1 }}"
+          - service: light.turn_on
+            target:
+              entity_id: "{{ target_entities }}"
+            data:
+              brightness: "{{ target_level }}"
+              transition: 2
+      
+      # COLOR TEMP SHORT - Adjust by 5%
+      - conditions:
+          - condition: trigger
+            id:
+              - color_temp_up_short
+              - color_temp_down_short
+        sequence:
+          - variables:
+              target_entities: >
+                {{ [current_light] if current_light != 'all' else current_area_lights }}
+              current_temp: >
+                {{ state_attr(target_entities[0], 'color_temp') | int(250) }}
+              step: "{{ -20 if trigger.id == 'color_temp_up_short' else 20 }}"
+              new_temp: >
+                {{ [153, [454, current_temp + step] | min] | max }}
+          - service: light.turn_on
+            target:
+              entity_id: "{{ target_entities }}"
+            data:
+              color_temp: "{{ new_temp }}"
+      
+      # COLOR TEMP LONG - Jump to extreme
+      - conditions:
+          - condition: trigger
+            id:
+              - color_temp_up_long
+              - color_temp_down_long
+        sequence:
+          - variables:
+              target_entities: >
+                {{ [current_light] if current_light != 'all' else current_area_lights }}
+              target_temp: "{{ 153 if trigger.id == 'color_temp_up_long' else 454 }}"
+          - service: light.turn_on
+            target:
+              entity_id: "{{ target_entities }}"
+            data:
+              color_temp: "{{ target_temp }}"
+              transition: 1
+      
+      # FAV 1 - Recall default area state
+      - conditions:
+          - condition: trigger
+            id: fav_1
+        sequence:
+          - service: scene.turn_on
+            target:
+              entity_id: scene.eglo_remote_default_area_state
+      
+      # FAV 2 - Recall default light state
+      - conditions:
+          - condition: trigger
+            id: fav_2
+        sequence:
+          - service: scene.turn_on
+            target:
+              entity_id: scene.eglo_remote_default_light_state
