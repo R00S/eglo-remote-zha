@@ -109,36 +109,23 @@ variables:
     {% endif %}
 
 trigger:
-  # Power buttons
+  # Power Left button (ON button)
   - platform: device
     device_id: !input remote
     domain: eglo_remote_zha
     type: action
     subtype: turn_on
-    id: power_left_short
+    id: power_left
     
-  - platform: device
-    device_id: !input remote
-    domain: eglo_remote_zha
-    type: action
-    subtype: turn_on
-    id: power_left_long
-    
+  # Power Right button (OFF button)
   - platform: device
     device_id: !input remote
     domain: eglo_remote_zha
     type: action
     subtype: turn_off
-    id: power_right_short
+    id: power_right
     
-  - platform: device
-    device_id: !input remote
-    domain: eglo_remote_zha
-    type: action
-    subtype: turn_off
-    id: power_right_long
-    
-  # Color buttons
+  # Colour Top button (Green)
   - platform: device
     device_id: !input remote
     domain: eglo_remote_zha
@@ -153,6 +140,7 @@ trigger:
     subtype: color_green_long
     id: color_green_long
     
+  # Colour Left button (Red)
   - platform: device
     device_id: !input remote
     domain: eglo_remote_zha
@@ -167,6 +155,7 @@ trigger:
     subtype: color_red_long
     id: color_red_long
     
+  # Colour Right button (Blue)
   - platform: device
     device_id: !input remote
     domain: eglo_remote_zha
@@ -181,6 +170,7 @@ trigger:
     subtype: color_blue_long
     id: color_blue_long
     
+  # Colour Middle button (Color cycle - used for light selection)
   - platform: device
     device_id: !input remote
     domain: eglo_remote_zha
@@ -195,7 +185,7 @@ trigger:
     subtype: color_cycle_long
     id: color_cycle_long
     
-  # Candle mode (refresh button - used for area cycling)
+  # Candle mode button (used for area cycling)
   - platform: device
     device_id: !input remote
     domain: eglo_remote_zha
@@ -210,7 +200,7 @@ trigger:
     subtype: refresh_long
     id: candle_mode_long
     
-  # Dimming buttons
+  # Dimming buttons (Brightness up/down)
   - platform: device
     device_id: !input remote
     domain: eglo_remote_zha
@@ -239,7 +229,7 @@ trigger:
     subtype: dim_down_long
     id: dim_down_long
     
-  # Color temperature buttons
+  # White tone selection buttons (Color temperature warm/cold)
   - platform: device
     device_id: !input remote
     domain: eglo_remote_zha
@@ -268,7 +258,7 @@ trigger:
     subtype: color_temp_down_long
     id: color_temp_down_long
     
-  # Favourite buttons
+  # Favourites buttons (Scene recall)
   - platform: device
     device_id: !input remote
     domain: eglo_remote_zha
@@ -406,10 +396,11 @@ action:
                 - delay:
                     milliseconds: 200
       
-      # POWER LEFT SHORT - Toggle custom entity
+      # POWER LEFT - Toggle custom entity or save default (needs long press detection)
+      # TODO: Implement long press detection if needed
       - conditions:
           - condition: trigger
-            id: power_left_short
+            id: power_left
           - condition: template
             value_template: "{{ power_left_entity != '' }}"
         sequence:
@@ -417,37 +408,11 @@ action:
             target:
               entity_id: "{{ power_left_entity }}"
       
-      # POWER LEFT LONG - Save default area
+      # POWER RIGHT - Toggle current area/light or save default state
+      # TODO: Implement long press detection for save functionality
       - conditions:
           - condition: trigger
-            id: power_left_long
-        sequence:
-          - service: input_text.set_value
-            target:
-              entity_id: !input default_area_helper
-            data:
-              value: "{{ current_area }}"
-          # Confirmation blink
-          - repeat:
-              count: 1
-              sequence:
-                - service: light.turn_on
-                  target:
-                    entity_id: "{{ current_area_lights }}"
-                  data:
-                    brightness_pct: 100
-                - delay:
-                    milliseconds: 300
-                - service: light.turn_off
-                  target:
-                    entity_id: "{{ current_area_lights }}"
-                - delay:
-                    milliseconds: 300
-      
-      # POWER RIGHT SHORT - Toggle current area/light
-      - conditions:
-          - condition: trigger
-            id: power_right_short
+            id: power_right
         sequence:
           - variables:
               target_entities: >
@@ -455,37 +420,6 @@ action:
           - service: light.toggle
             target:
               entity_id: "{{ target_entities }}"
-      
-      # POWER RIGHT LONG - Save default state
-      - conditions:
-          - condition: trigger
-            id: power_right_long
-        sequence:
-          - variables:
-              target_entities: >
-                {{ [current_light] if current_light != 'all' else current_area_lights }}
-              scene_name: >
-                {{ 'eglo_remote_default_' + ('light' if current_light != 'all' else 'area') + '_state' }}
-          - service: scene.create
-            data:
-              scene_id: "{{ scene_name }}"
-              snapshot_entities: "{{ target_entities }}"
-          # Confirmation blink
-          - repeat:
-              count: 1
-              sequence:
-                - service: light.turn_on
-                  target:
-                    entity_id: "{{ target_entities }}"
-                  data:
-                    brightness_pct: 100
-                - delay:
-                    milliseconds: 300
-                - service: light.turn_off
-                  target:
-                    entity_id: "{{ target_entities }}"
-                - delay:
-                    milliseconds: 300
       
       # COLOR BUTTONS SHORT - Set color
       - conditions:
