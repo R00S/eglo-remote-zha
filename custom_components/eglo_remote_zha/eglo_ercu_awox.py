@@ -40,8 +40,6 @@ from zhaquirks.const import (
     COMMAND_STEP_COLOR_TEMP,
     COMMAND_STEP_ON_OFF,
     DEVICE_TYPE,
-    DIM_DOWN,
-    DIM_UP,
     ENDPOINT_ID,
     ENDPOINTS,
     INPUT_CLUSTERS,
@@ -51,8 +49,6 @@ from zhaquirks.const import (
     PARAMS,
     PROFILE_ID,
     SHORT_PRESS,
-    TURN_OFF,
-    TURN_ON,
 )
 
 COMMAND_AWOX_COLOR = "awox_color"
@@ -238,8 +234,8 @@ class Awox99099Remote(CustomDevice):
             PARAMS: {"press": 2},
         },
         
-        # Dimming buttons
-        (SHORT_PRESS, DIM_UP): {
+        # Dimming buttons - use string literals for subtypes
+        (SHORT_PRESS, "dim_up"): {
             COMMAND: COMMAND_STEP_ON_OFF,
             CLUSTER_ID: 8,
             ENDPOINT_ID: 1,
@@ -251,7 +247,7 @@ class Awox99099Remote(CustomDevice):
             ENDPOINT_ID: 1,
             PARAMS: {"level": 254},
         },
-        (SHORT_PRESS, DIM_DOWN): {
+        (SHORT_PRESS, "dim_down"): {
             COMMAND: COMMAND_STEP_ON_OFF,
             CLUSTER_ID: 8,
             ENDPOINT_ID: 1,
