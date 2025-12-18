@@ -3,8 +3,15 @@ blueprint:
   description: |
     Intelligent area and light cycling system for Eglo Remote ZHA.
     
+    **SETUP REQUIRED**: Before using this blueprint, create 4 helper entities:
+    1. Input Select - Current Area (options: "all")
+    2. Input Select - Current Light (options: "all")  
+    3. Input Text - Default Area
+    4. Input DateTime - Last Activity (with date & time)
+    
+    Go to Settings → Devices & Services → Helpers → Create Helper
+    
     Features:
-    - Auto-creates helper entities on first run (no manual setup needed!)
     - Cycle through Home Assistant areas with Candle Mode button
     - Select individual lights within areas with Colour Middle button (short press)
     - Save current state with Colour Middle button (long press)
@@ -20,12 +27,6 @@ blueprint:
     - Colour Middle (long): Save current state as default
     - Candle Mode: Cycle through areas
     
-    Helper entities will be created automatically:
-    - input_select.eglo_remote_<device_name>_current_area
-    - input_select.eglo_remote_<device_name>_current_light
-    - input_text.eglo_remote_<device_name>_default_area
-    - input_datetime.eglo_remote_<device_name>_last_activity
-    
     Only ONE automation needed per remote!
   domain: automation
   input:
@@ -37,6 +38,34 @@ blueprint:
           integration: zha
           manufacturer: AwoX
           model: ERCU_3groups_Zm
+    
+    current_area_helper:
+      name: Current Area Helper
+      description: Input Select helper for tracking current area
+      selector:
+        entity:
+          domain: input_select
+    
+    current_light_helper:
+      name: Current Light Helper
+      description: Input Select helper for tracking current light
+      selector:
+        entity:
+          domain: input_select
+    
+    default_area_helper:
+      name: Default Area Helper
+      description: Input Text helper for storing default area
+      selector:
+        entity:
+          domain: input_text
+    
+    last_activity_helper:
+      name: Last Activity Helper
+      description: Input DateTime helper for tracking last button press
+      selector:
+        entity:
+          domain: input_datetime
           
     excluded_areas:
       name: Excluded Areas
