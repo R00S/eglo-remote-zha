@@ -1,25 +1,21 @@
 """Device handler for AwoX 99099 Remote (Eglo Remote 2.0)
 
-Last Modified: 2025-12-19 10:01:00 CET
-Changes: Added OnOff cluster back and power button triggers (button_1_press, button_2_press)
+Last Modified: 2025-12-19 10:30:00 CET
+Changes: Removed OnOff cluster permanently - duplicate events cannot be resolved with it present
 
-This quirk provides simple, numbered button control for the AwoX ERCU_3groups_Zm remote.
-Button mapping:
-- Button 1: Power ON (left) - button_1_press
-- Button 2: Power OFF (right) - button_2_press
-- Button 3: Color Green (top) - button_3_press/hold
-- Button 4: Color Red (left) - button_4_press/hold
-- Button 5: Color Blue (right) - button_5_press/hold
-- Button 6: Color Cycle (middle) - button_6_press/hold
-- Button 7: Dim Up - button_7_press/hold
-- Button 8: Dim Down - button_8_press/hold
-- Button 9: Color Temp Warm - button_9_press/hold
-- Button 10: Color Temp Cold - button_10_press/hold
-- Button 11: Candle/Refresh - button_11_press/hold
-- Button 12: Fav 1 - button_12_press (recall) / button_12_hold (store)
-- Button 13: Fav 2 - button_13_press (recall) / button_13_hold (store)
+This quirk fixes duplicate button event issues by removing the OnOff cluster.
+The remote sends spurious COMMAND_ON with many buttons, causing ZHA to auto-generate
+unwanted "On event" or "Turn On" events. With OnOff cluster removed, all buttons
+now produce clean, unique raw Zigbee cluster events:
 
-Clean, predictable event names for use in automations and blueprints.
+- Color buttons: Awox Color event / Move To Hue And Saturation event
+- Dim buttons: Step On Off event / Move To Level On Off event  
+- Color temp buttons: Step Color Temp event / Move To Color Temp event
+- Candle button: Awox Refresh event
+- Fav buttons: Recall event / Store event
+
+Tradeoff: Power ON/OFF buttons do not generate events (OnOff cluster removed).
+Use raw cluster events in automations (event type: zha_event).
 """
 
 from zigpy.profiles import zha
@@ -155,7 +151,8 @@ class Awox99099Remote(CustomDevice):
                     Identify.cluster_id,
                     Groups.cluster_id,
                     Scenes.cluster_id,
-                    OnOff.cluster_id,  # Needed for power buttons
+                    # OnOff cluster REMOVED - causes duplicate "On event" for all color/dim/temp buttons
+                    # Power buttons will not work, but all other buttons produce clean, unique events
                     AwoxLevelControlCluster,
                     AwoxColorCluster,
                     LightLink.cluster_id,
@@ -176,164 +173,7 @@ class Awox99099Remote(CustomDevice):
         }
     }
 
-    device_automation_triggers = {
-        # Button 1: Power ON (left)
-        (SHORT_PRESS, "button_1_press"): {COMMAND: COMMAND_ON, CLUSTER_ID: 6, ENDPOINT_ID: 1},
-        
-        # Button 2: Power OFF (right)
-        (SHORT_PRESS, "button_2_press"): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
-        
-        # Button 3: Color Green (top)
-        (SHORT_PRESS, "button_3_press"): {
-            COMMAND: COMMAND_AWOX_COLOR,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"color": 85},
-        },
-        (LONG_PRESS, "button_3_hold"): {
-            COMMAND: COMMAND_MOVE_TO_HUE_SATURATION,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"hue": 85},
-        },
-        
-        # Button 4: Color Red (left)
-        (SHORT_PRESS, "button_4_press"): {
-            COMMAND: COMMAND_AWOX_COLOR,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"color": 255},
-        },
-        (LONG_PRESS, "button_4_hold"): {
-            COMMAND: COMMAND_MOVE_TO_HUE_SATURATION,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"hue": 255},
-        },
-        
-        # Button 5: Color Blue (right)
-        (SHORT_PRESS, "button_5_press"): {
-            COMMAND: COMMAND_AWOX_COLOR,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"color": 170},
-        },
-        (LONG_PRESS, "button_5_hold"): {
-            COMMAND: COMMAND_MOVE_TO_HUE_SATURATION,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"hue": 170},
-        },
-        
-        # Button 6: Color Cycle (middle)
-        (SHORT_PRESS, "button_6_press"): {
-            COMMAND: COMMAND_ENHANCED_MOVE_HUE,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"move_mode": 1},
-        },
-        (LONG_PRESS, "button_6_hold"): {
-            COMMAND: COMMAND_ENHANCED_MOVE_HUE,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"move_mode": 3},
-        },
-        
-        # Button 7: Dim Up
-        (SHORT_PRESS, "button_7_press"): {
-            COMMAND: COMMAND_STEP_ON_OFF,
-            CLUSTER_ID: 8,
-            ENDPOINT_ID: 1,
-            PARAMS: {"step_mode": 0},
-        },
-        (LONG_PRESS, "button_7_hold"): {
-            COMMAND: COMMAND_MOVE_TO_LEVEL_ON_OFF,
-            CLUSTER_ID: 8,
-            ENDPOINT_ID: 1,
-            PARAMS: {"level": 254},
-        },
-        
-        # Button 8: Dim Down
-        (SHORT_PRESS, "button_8_press"): {
-            COMMAND: COMMAND_STEP_ON_OFF,
-            CLUSTER_ID: 8,
-            ENDPOINT_ID: 1,
-            PARAMS: {"step_mode": 1},
-        },
-        (LONG_PRESS, "button_8_hold"): {
-            COMMAND: COMMAND_MOVE_TO_LEVEL_ON_OFF,
-            CLUSTER_ID: 8,
-            ENDPOINT_ID: 1,
-            PARAMS: {"level": 1},
-        },
-        
-        # Button 9: Color Temp Warm
-        (SHORT_PRESS, "button_9_press"): {
-            COMMAND: COMMAND_STEP_COLOR_TEMP,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"step_mode": 1},
-        },
-        (LONG_PRESS, "button_9_hold"): {
-            COMMAND: COMMAND_MOVE_TO_COLOR_TEMP,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"color_temp_mireds": 454},
-        },
-        
-        # Button 10: Color Temp Cold
-        (SHORT_PRESS, "button_10_press"): {
-            COMMAND: COMMAND_STEP_COLOR_TEMP,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"step_mode": 3},
-        },
-        (LONG_PRESS, "button_10_hold"): {
-            COMMAND: COMMAND_MOVE_TO_COLOR_TEMP,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"color_temp_mireds": 153},
-        },
-        
-        # Button 11: Candle/Refresh
-        (SHORT_PRESS, "button_11_press"): {
-            COMMAND: COMMAND_AWOX_REFRESH,
-            CLUSTER_ID: 8,
-            ENDPOINT_ID: 1,
-            PARAMS: {"press": 1},
-        },
-        (LONG_PRESS, "button_11_hold"): {
-            COMMAND: COMMAND_AWOX_REFRESH,
-            CLUSTER_ID: 8,
-            ENDPOINT_ID: 1,
-            PARAMS: {"press": 2},
-        },
-        
-        # Button 12: Fav 1 (Recall scene 1 / Store scene 1)
-        (SHORT_PRESS, "button_12_press"): {
-            COMMAND: COMMAND_RECALL,
-            CLUSTER_ID: 5,
-            ENDPOINT_ID: 1,
-            PARAMS: {"scene_id": 1},
-        },
-        (LONG_PRESS, "button_12_hold"): {
-            COMMAND: COMMAND_STORE,
-            CLUSTER_ID: 5,
-            ENDPOINT_ID: 1,
-            PARAMS: {"scene_id": 1},
-        },
-        
-        # Button 13: Fav 2 (Recall scene 2 / Store scene 2)
-        (SHORT_PRESS, "button_13_press"): {
-            COMMAND: COMMAND_RECALL,
-            CLUSTER_ID: 5,
-            ENDPOINT_ID: 1,
-            PARAMS: {"scene_id": 2},
-        },
-        (LONG_PRESS, "button_13_hold"): {
-            COMMAND: COMMAND_STORE,
-            CLUSTER_ID: 5,
-            ENDPOINT_ID: 1,
-            PARAMS: {"scene_id": 2},
-        },
-    }
+    # No device_automation_triggers defined
+    # Remote buttons generate raw Zigbee cluster events that can be used directly in automations
+    # Use event type: zha_event and filter by command/params
+
