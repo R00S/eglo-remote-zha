@@ -1,7 +1,7 @@
 """Device handler for AwoX 99099 Remote (Eglo Remote 2.0)
 
-Last Modified: 2025-12-19 09:19:00 CET
-Changes: Use EventableCluster instead of CustomCluster for OnOff to prevent attribute state tracking
+Last Modified: 2025-12-19 09:32:00 CET
+Changes: Remove OnOff cluster entirely - remote sends ON commands but doesn't control device state
 
 This quirk provides simple, single-bank control for the AwoX ERCU_3groups_Zm remote.
 It emits 22 button events with hardware long-press support:
@@ -34,7 +34,6 @@ from zigpy.zcl.clusters.general import (
 from zigpy.zcl.clusters.lighting import Color
 from zigpy.zcl.clusters.lightlink import LightLink
 
-from zhaquirks import EventableCluster
 from zhaquirks.const import (
     CLUSTER_ID,
     COMMAND,
@@ -90,16 +89,6 @@ class Awox99099Remote(CustomDevice):
             {"param1": t.uint8_t, "press": t.uint8_t},
             is_manufacturer_specific=True,
         )
-
-    class AwoxOnOffCluster(EventableCluster, OnOff):
-        """Awox Remote OnOff cluster - uses EventableCluster to prevent state tracking.
-        
-        EventableCluster is designed for devices that send commands without maintaining state,
-        like remote controls. This prevents ZHA from generating "On event" based on attribute
-        reports, while still allowing device_automation_triggers to work properly.
-        """
-        pass
-
 
     signature = {
         # <SimpleDescriptor endpoint=1 profile=260 device_type=2048
@@ -163,7 +152,8 @@ class Awox99099Remote(CustomDevice):
                     Identify.cluster_id,
                     Groups.cluster_id,
                     Scenes.cluster_id,
-                    AwoxOnOffCluster,  # Custom cluster that suppresses ON events
+                    # OnOff cluster removed - remote sends ON commands but doesn't control device state
+                    # ZHA was auto-generating "On event" for these spurious ON commands
                     AwoxLevelControlCluster,
                     AwoxColorCluster,
                     LightLink.cluster_id,
