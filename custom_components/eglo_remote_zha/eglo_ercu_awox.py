@@ -1,7 +1,7 @@
 """Device handler for AwoX 99099 Remote (Eglo Remote 2.0)
 
-Last Modified: 2025-12-18 22:51:00 CET
-Changes: Changed to handle_cluster_request to block ON commands
+Last Modified: 2025-12-19 08:54:00 CET
+Changes: Removed OnOff cluster entirely from OUTPUT_CLUSTERS to prevent ON button events
 
 This quirk provides simple, single-bank control for the AwoX ERCU_3groups_Zm remote.
 It emits 22 button events with hardware long-press support:
@@ -178,7 +178,7 @@ class Awox99099Remote(CustomDevice):
                     Identify.cluster_id,
                     Groups.cluster_id,
                     Scenes.cluster_id,
-                    AwoxOnOffCluster,  # Custom cluster to filter ON commands
+                    AwoxOnOffCluster,  # Custom cluster that suppresses ON events
                     AwoxLevelControlCluster,
                     AwoxColorCluster,
                     LightLink.cluster_id,
