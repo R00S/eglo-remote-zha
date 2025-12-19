@@ -1,7 +1,7 @@
 """Device handler for AwoX 99099 Remote (Eglo Remote 2.0)
 
-Last Modified: 2025-12-19 08:54:00 CET
-Changes: Removed OnOff cluster entirely from OUTPUT_CLUSTERS to prevent ON button events
+Last Modified: 2025-12-19 09:11:00 CET
+Changes: Fixed _update_attribute override to suppress ON attribute updates
 
 This quirk provides simple, single-bank control for the AwoX ERCU_3groups_Zm remote.
 It emits 22 button events with hardware long-press support:
@@ -91,29 +91,19 @@ class Awox99099Remote(CustomDevice):
         )
 
     class AwoxOnOffCluster(CustomCluster, OnOff):
-        """Awox Remote Custom OnOff Cluster - blocks unwanted ON commands from color/dim/temp buttons"""
+        """Awox Remote Custom OnOff Cluster - suppresses ON command events"""
 
-        def handle_cluster_request(
-            self,
-            hdr: foundation.ZCLHeader,
-            args: list,
-            *,
-            dst_addressing=None
-        ):
-            """Block ON commands to prevent duplicate events from color/dim/temp buttons.
-            
-            The hardware sends ON commands from multiple buttons:
-            - Color buttons (green, red, blue, middle) send ON + color command
-            - Dim buttons send ON + dim command  
-            - Color temp buttons send ON + temp command
-            
-            We block ALL ON commands here by not processing them at all.
-            """
-            # Block ON commands (command_id 0x01) - don't process them
-            if hdr.command_id == 0x01:
+        # Don't create ZHA events for this cluster
+        _CONSTANT_ATTRIBUTES = {
+            "on_off": None,  # Suppress state tracking
+        }
+
+        def _update_attribute(self, attrid, value):
+            """Override to prevent state updates that trigger events."""
+            # Don't update on_off attribute to prevent ZHA events
+            if attrid == 0:  # on_off attribute
                 return
-            # Let OFF commands (0x00) and all other commands through
-            return super().handle_cluster_request(hdr, args, dst_addressing=dst_addressing)
+            super()._update_attribute(attrid, value)
 
 
     signature = {
