@@ -1,22 +1,25 @@
 """Device handler for AwoX 99099 Remote (Eglo Remote 2.0)
 
-Last Modified: 2025-12-19 09:32:00 CET
-Changes: Remove OnOff cluster entirely - remote sends ON commands but doesn't control device state
+Last Modified: 2025-12-19 09:40:00 CET
+Changes: Redesigned with simple button ID system (button_1 through button_13)
 
-This quirk provides simple, single-bank control for the AwoX ERCU_3groups_Zm remote.
-It emits 22 button events with hardware long-press support:
-- Power: turn_on, turn_off
-- Dimming: dim_up, dim_down (short + long versions)
-- Colors: color_red, color_green, color_blue, color_cycle (short + long versions)
-- Scenes: scene_1, scene_2 (Favourite buttons)
-- Color temp: color_temp_up, color_temp_down (short + long versions)
-- Candle mode: refresh, refresh_long
+This quirk provides simple, numbered button control for the AwoX ERCU_3groups_Zm remote.
+Button mapping:
+- Button 1: Power ON (left) - button_1_press
+- Button 2: Power OFF (right) - button_2_press
+- Button 3: Color Green (top) - button_3_press/hold
+- Button 4: Color Red (left) - button_4_press/hold
+- Button 5: Color Blue (right) - button_5_press/hold
+- Button 6: Color Cycle (middle) - button_6_press/hold
+- Button 7: Dim Up - button_7_press/hold
+- Button 8: Dim Down - button_8_press/hold
+- Button 9: Color Temp Warm - button_9_press/hold
+- Button 10: Color Temp Cold - button_10_press/hold
+- Button 11: Candle/Refresh - button_11_press/hold
+- Button 12: Fav 1 - button_12_press (recall) / button_12_hold (store)
+- Button 13: Fav 2 - button_13_press (recall) / button_13_hold (store)
 
-Area/light selection is handled by blueprints, not by the quirk.
-No bank suffixes (_1, _2, _3) are used in this simplified version.
-
-Note: Power button long press is detected through ZHA event platform in blueprints,
-not as separate automation triggers.
+Clean, predictable event names for use in automations and blueprints.
 """
 
 from zigpy.profiles import zha
@@ -175,148 +178,164 @@ class Awox99099Remote(CustomDevice):
     }
 
     device_automation_triggers = {
-        # Power buttons (right=OFF) - left power button doesn't produce COMMAND_ON
-        (SHORT_PRESS, TURN_OFF): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
+        # Button 1: Power ON (left) - Note: Hardware sends ON command but no unique event
+        # This button currently doesn't produce a unique identifiable event
+        # Users can detect it via the spurious ON commands if needed
         
-        # Color buttons (Colour top=green, left=red, right=blue, middle=cycle)
-        (SHORT_PRESS, "color_green"): {
+        # Button 2: Power OFF (right)
+        (SHORT_PRESS, "button_2_press"): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
+        
+        # Button 3: Color Green (top)
+        (SHORT_PRESS, "button_3_press"): {
             COMMAND: COMMAND_AWOX_COLOR,
             CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
             PARAMS: {"color": 85},
         },
-        (LONG_PRESS, "color_green_long"): {
+        (LONG_PRESS, "button_3_hold"): {
             COMMAND: COMMAND_MOVE_TO_HUE_SATURATION,
             CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
             PARAMS: {"hue": 85},
         },
-        (SHORT_PRESS, "color_red"): {
+        
+        # Button 4: Color Red (left)
+        (SHORT_PRESS, "button_4_press"): {
             COMMAND: COMMAND_AWOX_COLOR,
             CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
             PARAMS: {"color": 255},
         },
-        (LONG_PRESS, "color_red_long"): {
+        (LONG_PRESS, "button_4_hold"): {
             COMMAND: COMMAND_MOVE_TO_HUE_SATURATION,
             CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
             PARAMS: {"hue": 255},
         },
-        (SHORT_PRESS, "color_cycle"): {
-            COMMAND: COMMAND_ENHANCED_MOVE_HUE,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"move_mode": 1},
-        },
-        (LONG_PRESS, "color_cycle_long"): {
-            COMMAND: COMMAND_ENHANCED_MOVE_HUE,
-            CLUSTER_ID: 768,
-            ENDPOINT_ID: 1,
-            PARAMS: {"move_mode": 3},
-        },
-        (SHORT_PRESS, "color_blue"): {
+        
+        # Button 5: Color Blue (right)
+        (SHORT_PRESS, "button_5_press"): {
             COMMAND: COMMAND_AWOX_COLOR,
             CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
             PARAMS: {"color": 170},
         },
-        (LONG_PRESS, "color_blue_long"): {
+        (LONG_PRESS, "button_5_hold"): {
             COMMAND: COMMAND_MOVE_TO_HUE_SATURATION,
             CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
             PARAMS: {"hue": 170},
         },
         
-        # Candle mode / refresh button
-        (SHORT_PRESS, "refresh"): {
-            COMMAND: COMMAND_AWOX_REFRESH,
-            CLUSTER_ID: 8,
+        # Button 6: Color Cycle (middle)
+        (SHORT_PRESS, "button_6_press"): {
+            COMMAND: COMMAND_ENHANCED_MOVE_HUE,
+            CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
-            PARAMS: {"press": 1},
+            PARAMS: {"move_mode": 1},
         },
-        (LONG_PRESS, "refresh_long"): {
-            COMMAND: COMMAND_AWOX_REFRESH,
-            CLUSTER_ID: 8,
+        (LONG_PRESS, "button_6_hold"): {
+            COMMAND: COMMAND_ENHANCED_MOVE_HUE,
+            CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
-            PARAMS: {"press": 2},
+            PARAMS: {"move_mode": 3},
         },
         
-        # Dimming buttons - SHORT_PRESS uses DIM_UP/DIM_DOWN constants, LONG_PRESS uses custom strings
-        (SHORT_PRESS, DIM_UP): {
+        # Button 7: Dim Up
+        (SHORT_PRESS, "button_7_press"): {
             COMMAND: COMMAND_STEP_ON_OFF,
             CLUSTER_ID: 8,
             ENDPOINT_ID: 1,
             PARAMS: {"step_mode": 0},
         },
-        (LONG_PRESS, "dim_up_long"): {
+        (LONG_PRESS, "button_7_hold"): {
             COMMAND: COMMAND_MOVE_TO_LEVEL_ON_OFF,
             CLUSTER_ID: 8,
             ENDPOINT_ID: 1,
             PARAMS: {"level": 254},
         },
-        (SHORT_PRESS, DIM_DOWN): {
+        
+        # Button 8: Dim Down
+        (SHORT_PRESS, "button_8_press"): {
             COMMAND: COMMAND_STEP_ON_OFF,
             CLUSTER_ID: 8,
             ENDPOINT_ID: 1,
             PARAMS: {"step_mode": 1},
         },
-        (LONG_PRESS, "dim_down_long"): {
+        (LONG_PRESS, "button_8_hold"): {
             COMMAND: COMMAND_MOVE_TO_LEVEL_ON_OFF,
             CLUSTER_ID: 8,
             ENDPOINT_ID: 1,
             PARAMS: {"level": 1},
         },
         
-        # Favourite buttons (scene recall/store)
-        (SHORT_PRESS, "scene_1"): {
-            COMMAND: COMMAND_RECALL,
-            CLUSTER_ID: 5,
-            ENDPOINT_ID: 1,
-            PARAMS: {"scene_id": 1},
-        },
-        (LONG_PRESS, "scene_1_long"): {
-            COMMAND: COMMAND_STORE,
-            CLUSTER_ID: 5,
-            ENDPOINT_ID: 1,
-            PARAMS: {"scene_id": 1},
-        },
-        (SHORT_PRESS, "scene_2"): {
-            COMMAND: COMMAND_RECALL,
-            CLUSTER_ID: 5,
-            ENDPOINT_ID: 1,
-            PARAMS: {"scene_id": 2},
-        },
-        (LONG_PRESS, "scene_2_long"): {
-            COMMAND: COMMAND_STORE,
-            CLUSTER_ID: 5,
-            ENDPOINT_ID: 1,
-            PARAMS: {"scene_id": 2},
-        },
-        
-        # Color temperature buttons (white tone selection)
-        (SHORT_PRESS, "color_temp_up"): {
+        # Button 9: Color Temp Warm
+        (SHORT_PRESS, "button_9_press"): {
             COMMAND: COMMAND_STEP_COLOR_TEMP,
             CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
             PARAMS: {"step_mode": 1},
         },
-        (LONG_PRESS, "color_temp_up_long"): {
+        (LONG_PRESS, "button_9_hold"): {
             COMMAND: COMMAND_MOVE_TO_COLOR_TEMP,
             CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
             PARAMS: {"color_temp_mireds": 454},
         },
-        (SHORT_PRESS, "color_temp_down"): {
+        
+        # Button 10: Color Temp Cold
+        (SHORT_PRESS, "button_10_press"): {
             COMMAND: COMMAND_STEP_COLOR_TEMP,
             CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
             PARAMS: {"step_mode": 3},
         },
-        (LONG_PRESS, "color_temp_down_long"): {
+        (LONG_PRESS, "button_10_hold"): {
             COMMAND: COMMAND_MOVE_TO_COLOR_TEMP,
             CLUSTER_ID: 768,
             ENDPOINT_ID: 1,
             PARAMS: {"color_temp_mireds": 153},
+        },
+        
+        # Button 11: Candle/Refresh
+        (SHORT_PRESS, "button_11_press"): {
+            COMMAND: COMMAND_AWOX_REFRESH,
+            CLUSTER_ID: 8,
+            ENDPOINT_ID: 1,
+            PARAMS: {"press": 1},
+        },
+        (LONG_PRESS, "button_11_hold"): {
+            COMMAND: COMMAND_AWOX_REFRESH,
+            CLUSTER_ID: 8,
+            ENDPOINT_ID: 1,
+            PARAMS: {"press": 2},
+        },
+        
+        # Button 12: Fav 1 (Recall scene 1 / Store scene 1)
+        (SHORT_PRESS, "button_12_press"): {
+            COMMAND: COMMAND_RECALL,
+            CLUSTER_ID: 5,
+            ENDPOINT_ID: 1,
+            PARAMS: {"scene_id": 1},
+        },
+        (LONG_PRESS, "button_12_hold"): {
+            COMMAND: COMMAND_STORE,
+            CLUSTER_ID: 5,
+            ENDPOINT_ID: 1,
+            PARAMS: {"scene_id": 1},
+        },
+        
+        # Button 13: Fav 2 (Recall scene 2 / Store scene 2)
+        (SHORT_PRESS, "button_13_press"): {
+            COMMAND: COMMAND_RECALL,
+            CLUSTER_ID: 5,
+            ENDPOINT_ID: 1,
+            PARAMS: {"scene_id": 2},
+        },
+        (LONG_PRESS, "button_13_hold"): {
+            COMMAND: COMMAND_STORE,
+            CLUSTER_ID: 5,
+            ENDPOINT_ID: 1,
+            PARAMS: {"scene_id": 2},
         },
     }
