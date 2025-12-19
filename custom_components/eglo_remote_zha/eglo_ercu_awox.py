@@ -1,7 +1,7 @@
 """Device handler for AwoX 99099 Remote (Eglo Remote 2.0)
 
-Last Modified: 2025-12-19 09:40:00 CET
-Changes: Redesigned with simple button ID system (button_1 through button_13)
+Last Modified: 2025-12-19 10:01:00 CET
+Changes: Added OnOff cluster back and power button triggers (button_1_press, button_2_press)
 
 This quirk provides simple, numbered button control for the AwoX ERCU_3groups_Zm remote.
 Button mapping:
@@ -155,8 +155,7 @@ class Awox99099Remote(CustomDevice):
                     Identify.cluster_id,
                     Groups.cluster_id,
                     Scenes.cluster_id,
-                    # OnOff cluster removed - remote sends ON commands but doesn't control device state
-                    # ZHA was auto-generating "On event" for these spurious ON commands
+                    OnOff.cluster_id,  # Needed for power buttons
                     AwoxLevelControlCluster,
                     AwoxColorCluster,
                     LightLink.cluster_id,
@@ -178,9 +177,8 @@ class Awox99099Remote(CustomDevice):
     }
 
     device_automation_triggers = {
-        # Button 1: Power ON (left) - Note: Hardware sends ON command but no unique event
-        # This button currently doesn't produce a unique identifiable event
-        # Users can detect it via the spurious ON commands if needed
+        # Button 1: Power ON (left)
+        (SHORT_PRESS, "button_1_press"): {COMMAND: COMMAND_ON, CLUSTER_ID: 6, ENDPOINT_ID: 1},
         
         # Button 2: Power OFF (right)
         (SHORT_PRESS, "button_2_press"): {COMMAND: COMMAND_OFF, CLUSTER_ID: 6, ENDPOINT_ID: 1},
