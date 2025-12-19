@@ -156,58 +156,11 @@ Control **ANY Home Assistant light** with your Eglo remote:
 
 For the simpler Tuya variant (TS004F), see the [quirks documentation](quirks/README.md).
 
-### Installation (AwoX ERCU_3groups_Zm ONLY)
+### Installation
 
-**Note**: These instructions are ONLY for the **AwoX ERCU_3groups_Zm** (Eglo Remote 2.0). If you have the TS004F (Tuya variant), that's a different device entirely.
+This integration is designed to be installed via HACS. The quirks are automatically loaded from the integration.
 
-#### Step 1: Copy the Quirk File
-
-1. **Create the quirks directory** in your Home Assistant configuration:
-   ```bash
-   mkdir -p /config/zhaquirks
-   ```
-
-2. **Copy the AwoX quirk file**:
-   ```bash
-   cp quirks/eglo_ercu_awox.py /config/zhaquirks/
-   ```
-
-#### Step 2: Configure ZHA
-
-Add to your `configuration.yaml`:
-```yaml
-zha:
-  custom_quirks_path: /config/zhaquirks/
-```
-
-#### Step 3: Restart and Pair
-
-1. **Restart Home Assistant**
-
-2. **Remove the device** if already paired:
-   - Go to Configuration → Devices & Services → ZHA
-   - Find the Eglo remote and remove it
-
-3. **Reset the remote**:
-   - Hold any button for ~10 seconds until LED flashes rapidly
-
-4. **Pair the device**:
-   - Put ZHA in pairing mode
-   - Press any button on the remote
-   - Wait for pairing to complete
-
-5. **Verify the quirk loaded**:
-   - Check device info in ZHA
-   - Should show: Manufacturer: "**AwoX**", Model: "**ERCU_3groups_Zm**"
-   - Quirk class: "**Awox99099Remote**"
-   - **NOT** TS004F or Tuya - that's a different device!
-
-#### Alternative: If You Have the TS004F (Different Device)
-
-If you have the Tuya variant instead:
-- Use `quirks/eglo_ercu_3groups.py` instead
-- Follow the same installation steps
-- See [quirks README](quirks/README.md) for specific instructions
+**Note**: Manual quirk installation is no longer supported. Use HACS installation as described in the "📦 Installation via HACS" section above.
 
 ### Installing Blueprints
 
